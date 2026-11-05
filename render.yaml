@@ -2,10 +2,14 @@ services:
   - type: web
     name: local-faces
     runtime: python
-    plan: free
+    plan: starter
+    disk:
+      name: private-applicant-uploads
+      mountPath: /var/data
+      sizeGB: 1
     buildCommand: ./build.sh
     startCommand: gunicorn localfaces.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --access-logfile -
-    healthCheckPath: /
+    healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
@@ -13,6 +17,10 @@ services:
         value: "False"
       - key: SECRET_KEY
         generateValue: true
+      - key: DJANGO_MEDIA_ROOT
+        value: /var/data/private_uploads
+      - key: LOCAL_FACES_WHATSAPP_NUMBER
+        value: "27681946795"
       - key: DATABASE_URL
         fromDatabase:
           name: local-faces-db
@@ -20,6 +28,6 @@ services:
 
 databases:
   - name: local-faces-db
-    plan: free
+    plan: basic-256mb
     databaseName: localfaces
     user: localfaces

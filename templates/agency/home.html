@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 {% block title %}Local Faces — Real People. Real Talent.{% endblock %}
 {% block description %}A home for models, entertainers and creatives of all ages, sizes and backgrounds. Discover training, representation, photography and entertainment at Local Faces.{% endblock %}
@@ -15,9 +15,7 @@
       </div>
     </div>
     <div class="hero-collage">
-      <img class="hero-main" src="{% static 'agency/img/founder-portrait.jpg' %}" alt="Local Faces model in a white linen shirt" width="600" height="1254" fetchpriority="high">
-      <img class="hero-strip hero-strip-a" src="{% static 'agency/img/hero-profile.jpg' %}" alt="Model in profile" width="140" height="365">
-      <img class="hero-strip hero-strip-b" src="{% static 'agency/img/hero-smile.jpg' %}" alt="Smiling model in a black top" width="145" height="365">
+      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Three Local Faces models: a model in a white shirt, a model in profile and a smiling model in a black top" width="757" height="388" fetchpriority="high">
     </div>
   </section>
 
@@ -62,7 +60,7 @@
         <li>Branding &amp; Social Media</li>
         <li>Industry Knowledge &amp; Representation</li>
       </ul>
-      <a class="button button-champagne" href="#contact">View courses <span aria-hidden="true">→</span></a>
+      <a class="button button-champagne" href="{% url 'camp:apply' %}">Apply for training <span aria-hidden="true">→</span></a>
       <p class="note">Course dates and pricing to be announced.</p>
     </div>
     <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "agency",
+    "camp.apps.CampConfig",
 ]
 
 MIDDLEWARE = [
@@ -104,6 +105,15 @@ STORAGES = {
         ),
     },
 }
+
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "private_uploads")))
+MEDIA_URL = "private/"
+
+LOGIN_URL = "admin:login"
+LOGIN_REDIRECT_URL = "camp:dashboard"
+LOGOUT_REDIRECT_URL = "camp:apply"
+
+LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get("LOCAL_FACES_WHATSAPP_NUMBER", "27681946795")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
