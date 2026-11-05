@@ -6,7 +6,8 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+# Render sets RENDER=true, so production defaults to DEBUG off (enables WhiteNoise).
+DEBUG = os.environ.get("DEBUG", "False" if os.environ.get("RENDER") else "True").lower() == "true"
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
