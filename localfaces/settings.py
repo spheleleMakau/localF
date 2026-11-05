@@ -11,8 +11,9 @@ DEBUG = os.environ.get("DEBUG", "False" if os.environ.get("RENDER") else "True")
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
-    if not DEBUG:
+    if not DEBUG and not os.environ.get("RENDER"):
         raise RuntimeError("SECRET_KEY must be set when DEBUG is False.")
+    # Testing-only fallback; set SECRET_KEY in Render's environment for real use.
     SECRET_KEY = "local-development-key-change-before-deploy"
 
 ALLOWED_HOSTS = [
