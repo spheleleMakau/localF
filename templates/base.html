@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1d1b18">
+    <meta name="description" content="{% block description %}Local Faces Talent Agency & Entertainment — a home for models, entertainers and creatives of all ages, sizes and backgrounds.{% endblock %}">
+    <title>{% block title %}Local Faces — Talent Agency & Entertainment{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'agency/css/site.css' %}">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header" data-header>
+      <a class="brand" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
+        <img src="{% static 'agency/img/logo-light.png' %}" alt="Local Faces Talent Agency" width="605" height="200">
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-menu-toggle>
+        <span class="menu-toggle-label">Menu</span>
+        <span class="menu-toggle-lines" aria-hidden="true"><i></i><i></i></span>
+      </button>
+      <nav class="primary-navigation" id="primary-navigation" aria-label="Main navigation" data-navigation>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'home' %}#about">About</a>
+        <a href="{% url 'home' %}#talent">Talent</a>
+        <a href="{% url 'home' %}#training">Training</a>
+        <a href="{% url 'home' %}#photography">Photography</a>
+        <a href="{% url 'home' %}#entertainment">Entertainment</a>
+        <a href="{% url 'home' %}#merchandise">Merchandise</a>
+        <a href="{% url 'home' %}#contact">Contact</a>
+        <a class="button button-small button-dark nav-join" href="{% url 'home' %}#join">Join our talent pool</a>
+      </nav>
+    </header>
+    <main id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer" id="contact">
+      <div class="footer-main">
+        <a class="brand brand-footer" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
+          <img src="{% static 'agency/img/logo-light.png' %}" alt="Local Faces Talent Agency" width="605" height="200" loading="lazy">
+        </a>
+        <p>Real people. Real talent.<br>Room to become.</p>
+        <span class="footer-contact">Contact details to be confirmed</span>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; {% now "Y" %} Local Faces Talent Agency &amp; Entertainment</span>
+        <span>South Africa</span>
+      </div>
+    </footer>
+    <script src="{% static 'agency/js/site.js' %}" defer></script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

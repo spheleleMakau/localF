@@ -1,0 +1,120 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block title %}Local Faces — Real People. Real Talent.{% endblock %}
+{% block description %}A home for models, entertainers and creatives of all ages, sizes and backgrounds. Discover training, representation, photography and entertainment at Local Faces.{% endblock %}
+{% block content %}
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="hero-tags"><span>Models</span><span>Entertainers</span><span>Creatives</span><span>Training</span></p>
+      <h1 id="hero-title">REAL PEOPLE.<br><strong>REAL</strong> TALENT.</h1>
+      <span class="hero-rule"></span>
+      <p class="hero-intro">A home for Models, Entertainers and Creatives of all ages, sizes and backgrounds.</p>
+      <div class="hero-actions">
+        <a class="button button-champagne" href="#join">Join our talent pool <span aria-hidden="true">→</span></a>
+        <a class="button button-ghost" href="#training">Explore training</a>
+      </div>
+    </div>
+    <div class="hero-collage">
+      <img class="hero-main" src="{% static 'agency/img/founder-portrait.jpg' %}" alt="Local Faces model in a white linen shirt" width="600" height="1254" fetchpriority="high">
+      <img class="hero-strip hero-strip-a" src="{% static 'agency/img/hero-profile.jpg' %}" alt="Model in profile" width="140" height="365">
+      <img class="hero-strip hero-strip-b" src="{% static 'agency/img/hero-smile.jpg' %}" alt="Smiling model in a black top" width="145" height="365">
+    </div>
+  </section>
+
+  <section class="services" id="entertainment" aria-label="Agency services">
+    <a class="service" href="#talent">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="16" r="6"/><circle cx="32" cy="18" r="5"/><path d="M5 38c0-7 5-12 12-12s12 5 12 12M29 27c6-2 13 2 13 10"/></svg>
+      <h2>Talent Representation</h2>
+      <p>Models, Actors, Presenters, MCs &amp; Influencers</p>
+    </a>
+    <a class="service" href="#training">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 9 3 19l21 10 21-10zM11 24v9c0 3 6 6 13 6s13-3 13-6v-9M45 19v14"/></svg>
+      <h2>Training Courses</h2>
+      <p>Modelling, On-Camera, Branding &amp; Industry Preparation</p>
+    </a>
+    <a class="service" href="#photography">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 15h9l3-5h12l3 5h9v24H6z"/><circle cx="24" cy="26" r="7"/></svg>
+      <h2>Photography</h2>
+      <p>Professional Shoots, Digitals &amp; Portfolios</p>
+    </a>
+    <a class="service" href="#join">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 20h36v20H6zM6 20l5-9 7 3-5 6M20 14l7 3-5 6M34 17l7 3"/></svg>
+      <h2>Entertainment</h2>
+      <p>Production, Casting, Content &amp; Talent Sourcing</p>
+    </a>
+    <a class="service" href="#merchandise">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 16h30l2 25H7zM17 20v-6a7 7 0 0 1 14 0v6"/></svg>
+      <h2>Merchandise</h2>
+      <p>Official Local Faces Apparel &amp; Lifestyle Range</p>
+    </a>
+  </section>
+
+  <section class="academy" id="training" aria-labelledby="academy-title">
+    <img class="academy-photo" src="{% static 'agency/img/academy-main.jpg' %}" alt="Model seated in white, looking down" width="440" height="335" loading="lazy">
+    <div class="academy-copy">
+      <p class="eyebrow">Learn. Practise. Grow.</p>
+      <h2 id="academy-title">LOCAL FACES<br><span>SUMMER MODELLING ACADEMY</span></h2>
+      <p class="academy-intro">Industry-focused training to develop, equip and prepare you for real opportunities.</p>
+      <ul class="checklist">
+        <li>Modelling &amp; Runway</li>
+        <li>On-Camera &amp; Audition Skills</li>
+        <li>Confidence &amp; Self-Esteem</li>
+        <li>Branding &amp; Social Media</li>
+        <li>Industry Knowledge &amp; Representation</li>
+      </ul>
+      <a class="button button-champagne" href="#contact">View courses <span aria-hidden="true">→</span></a>
+      <p class="note">Course dates and pricing to be announced.</p>
+    </div>
+    <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
+  </section>
+
+  <section class="talent" id="talent" aria-labelledby="talent-title">
+    <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
+    <a class="tile" href="#join">
+      <img src="{% static 'agency/img/talent-models.jpg' %}" alt="Model in a red top and jeans" width="213" height="173" loading="lazy">
+      <span class="tile-text"><strong>Models</strong><small>All sizes. All ages.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tile" href="#join">
+      <img src="{% static 'agency/img/talent-entertainers.jpg' %}" alt="Entertainer in a black sleeveless top" width="212" height="173" loading="lazy">
+      <span class="tile-text"><strong>Entertainers</strong><small>Actors, Presenters, MCs &amp; Creators.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tile" id="photography" href="#join">
+      <img src="{% static 'agency/img/talent-photography.jpg' %}" alt="Behind the scenes on a photo shoot" width="226" height="183" loading="lazy">
+      <span class="tile-text"><strong>Photography</strong><small>Portfolios, Digitals &amp; Campaign Shoots.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <div class="merch" id="merchandise">
+      <div class="merch-copy">
+        <img class="merch-logo" src="{% static 'agency/img/logo-dark.png' %}" alt="Local Faces" width="605" height="200" loading="lazy">
+        <h2>MERCHANDISE</h2>
+        <p>Official Local Faces apparel. Wear the brand.</p>
+        <span class="button button-dark button-disabled" aria-disabled="true">Shop coming soon</span>
+        <p class="note">Product details and pricing to be confirmed.</p>
+      </div>
+      <img class="merch-apparel" src="{% static 'agency/img/merch-apparel.jpg' %}" alt="Local Faces branded t-shirt and cap" width="172" height="152" loading="lazy">
+      <img class="merch-tote" src="{% static 'agency/img/merch-tote.jpg' %}" alt="Local Faces canvas tote bag" width="1254" height="1254" loading="lazy">
+    </div>
+  </section>
+
+  <section class="founder" id="about" aria-labelledby="founder-title">
+    <img src="{% static 'agency/img/founder-portrait.jpg' %}" alt="Semu, founder of Local Faces" width="600" height="1254" loading="lazy">
+    <div class="founder-copy">
+      <p class="eyebrow">Meet the founder</p>
+      <h2 id="founder-title">The journey is <em>personal.</em></h2>
+      <p>With over 15 years of experience in the modelling and entertainment industry, Semu brings firsthand experience, international exposure and a passion for developing talent.</p>
+      <p>Through Local Faces Talent Agency, her mission is to discover, groom and represent the next generation of talent, creating opportunities for people of all ages, shapes, sizes and backgrounds.</p>
+    </div>
+  </section>
+
+  <section class="join" id="join" aria-labelledby="join-title">
+    <p class="join-steps"><span>Develop</span><span>Shoot</span><span>Perform</span><span>Get Represented</span></p>
+    <h2 id="join-title" class="visually-hidden">Develop. Shoot. Perform. Get represented.</h2>
+    <p class="join-lead">Your journey starts here. Discover your potential and become part of Local Faces.</p>
+    <div class="join-actions">
+      <a class="button button-champagne" href="#contact">Join our talent pool <span aria-hidden="true">→</span></a>
+      <a class="button button-ghost" href="#contact">Contact our team</a>
+    </div>
+    <p class="note">Registration and contact details will be added once approved details are available.</p>
+  </section>
+{% endblock %}
+
+
