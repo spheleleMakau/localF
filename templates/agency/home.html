@@ -1,16 +1,16 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 {% block title %}Local Faces — Real People. Real Talent.{% endblock %}
-{% block description %}A home for models, entertainers and creatives of all ages, sizes and backgrounds. Discover training, representation, photography and entertainment at Local Faces.{% endblock %}
+{% block description %}A home for models and talent of all ages, sizes and backgrounds. Discover training, representation, photography and entertainment at Local Faces.{% endblock %}
 {% block content %}
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-copy">
-      <p class="hero-tags"><span>Models</span><span>Entertainers</span><span>Creatives</span><span>Training</span></p>
+      <p class="hero-tags"><span>Models</span><span>Talent</span><span>Training</span></p>
       <h1 id="hero-title">REAL PEOPLE.<br><strong>REAL</strong> TALENT.</h1>
       <span class="hero-rule"></span>
-      <p class="hero-intro">A home for Models, Entertainers and Creatives of all ages, sizes and backgrounds.</p>
+      <p class="hero-intro">A home for Models and Talent of all ages, sizes and backgrounds.</p>
       <div class="hero-actions">
-        <a class="button button-champagne" href="#join">Join our talent pool <span aria-hidden="true">→</span></a>
+        <a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a>
         <a class="button button-ghost" href="#training">Explore training</a>
       </div>
     </div>
@@ -60,8 +60,8 @@
         <li>Branding &amp; Social Media</li>
         <li>Industry Knowledge &amp; Representation</li>
       </ul>
-      <a class="button button-champagne" href="{% url 'camp:apply' %}">Apply for training <span aria-hidden="true">→</span></a>
-      <p class="note">Course dates and pricing to be announced.</p>
+      {% include "agency/_training_details.html" %}
+      <a class="button button-champagne" href="{% url 'camp:apply' %}">Apply for 2027 training <span aria-hidden="true">→</span></a>
     </div>
     <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
   </section>
@@ -107,11 +107,9 @@
     <h2 id="join-title" class="visually-hidden">Develop. Shoot. Perform. Get represented.</h2>
     <p class="join-lead">Your journey starts here. Discover your potential and become part of Local Faces.</p>
     <div class="join-actions">
-      <a class="button button-champagne" href="#contact">Join our talent pool <span aria-hidden="true">→</span></a>
+      <a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a>
       <a class="button button-ghost" href="#contact">Contact our team</a>
     </div>
-    <p class="note">Registration and contact details will be added once approved details are available.</p>
+    <p class="note">More talent pool application details are coming soon.</p>
   </section>
 {% endblock %}
-
-

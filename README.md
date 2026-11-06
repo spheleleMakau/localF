@@ -4,9 +4,9 @@ The initial Local Faces Talent Agency & Entertainment website, built with Django
 
 ## Current stage
 
-This first stage establishes the Django project, base template, responsive navigation and homepage sections for services, training, talent categories, photography, merchandise, the founder and the main call to action. The provided workspace did not contain the Local Faces logo, approved photographs or confirmed contact details. Image areas and contact details are therefore visibly identified as pending; no talent profiles, products, prices or agency achievements have been invented.
+The site includes a responsive homepage, training information and a summer camp application form. Contact and merchandise details remain pending.
 
-Registration forms, content administration beyond Django's built-in admin, image uploads and the remaining dedicated pages are not implemented in this stage. The talent application flow must not be used until server-side validation, private file storage and explicit success/error handling are added.
+The talent pool page currently lets visitors choose a category but cannot submit applications until the remaining fields are specified. The separate training application collects applicant details and photos.
 
 ## Run locally
 

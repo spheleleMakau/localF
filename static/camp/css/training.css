@@ -735,6 +735,9 @@
     animation: none;
   }
 }
+
+.camp-page .form-campaign-art img,
+.camp-page .form-campaign-art:hover img { object-position: center; transform: none; }
 .camp-page .form-campaign-secondary {
   background-image:
     linear-gradient(rgba(24, 19, 13, .08), rgba(24, 19, 13, .12)),

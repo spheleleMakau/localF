@@ -2,21 +2,22 @@
 {% load static %}
 {% block title %}Apply — Local Faces Agency Summer Camp{% endblock %}
 {% block camp_content %}
-<section class="form-page" style="--campaign-image: url('{% static 'camp/img/2.jpg' %}')">
-  <p id="kids-application-notice" class="kids-application-notice" role="status" hidden>Disclaimer: Applications for the Kids category will open in 2027.</p>
+<section class="form-page" style="--campaign-image: url('{% static 'agency/img/academy-main.jpg' %}')">
+  <p id="kids-application-notice" class="kids-application-notice" role="status" hidden>Applications for the Kids category are open for 2027.</p>
   <div class="form-heading">
     <div class="section-label"><span>LOCAL FACES AGENCY</span> 6-WEEK SUMMER CAMP</div>
     <h1>Kindly complete<br>the <em>fields below.</em></h1>
     <p>Share a few details and photographs in one go. Fields marked with <span class="required-mark">*</span> are required.</p>
+    {% include "agency/_training_details.html" %}
   </div>
   <div class="form-layout">
     <aside class="form-aside" aria-label="Summer camp campaign">
       <div class="form-campaign-art">
-        <img src="{% static 'camp/img/2.jpg' %}" alt="Campaign portrait featuring a model for Local Faces Agency">
+        <img src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Local Faces model">
         <span>LET'S GET<br>STARTED!</span>
       </div>
       <div class="form-campaign-secondary">
-        <img src="{% static 'camp/img/1.jpg' %}" alt="Local Faces Agency summer modelling campaign with programme overview">
+        <img src="{% static 'agency/img/academy-main.jpg' %}" alt="Local Faces model seated in white">
       </div>
     </aside>
     <form class="application-form" id="application-form" method="post" enctype="multipart/form-data" data-application-form>

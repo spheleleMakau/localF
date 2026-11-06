@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Join our talent pool — Local Faces{% endblock %}
+{% block content %}
+<section class="talent-application" aria-labelledby="talent-application-title">
+  <div class="talent-application-inner">
+    <p class="eyebrow">Your journey starts here</p>
+    <h1 id="talent-application-title">Join our talent pool</h1>
+    <p>Choose the category that best describes you.</p>
+    <form>
+      <fieldset class="talent-categories">
+        <legend>Category</legend>
+        <label><input type="radio" name="category" value="model"> <span>Model</span></label>
+        <label><input type="radio" name="category" value="talent"> <span>Talent</span></label>
+      </fieldset>
+      <p class="talent-form-notice">More application fields are coming soon. Applications cannot be submitted yet.</p>
+    </form>
+    <a class="text-back" href="{% url 'home' %}">← Back to home</a>
+  </div>
+</section>
+{% endblock %}

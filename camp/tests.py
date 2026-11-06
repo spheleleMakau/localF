@@ -100,7 +100,7 @@ class CampPagesTests(TestCase):
         self.assertTrue(response.context["form"]["age"].field.required)
         self.assertTrue(response.context["form"]["city"].field.required)
         self.assertTrue(response.context["form"]["town"].field.required)
-        self.assertContains(response, 'hidden>Disclaimer: Applications for the Kids category')
+        self.assertContains(response, 'hidden>Applications for the Kids category are open for 2027.')
         content = response.content.decode()
         self.assertLess(
             content.index('id="kids-application-notice"'),
