@@ -82,11 +82,14 @@ class HomePageTests(TestCase):
                 self.assertContains(response, "non-refundable")
                 self.assertContains(response, "Course: R2,500")
 
-    def test_training_links_go_to_shop(self):
+    def test_training_links_go_to_details_and_shop(self):
         response = self.client.get(reverse("home"))
         self.assertContains(response, f'href="{reverse("training_shop")}"')
+        self.assertContains(
+            response,
+            f'href="{reverse("camp:apply")}">Explore training</a>',
+        )
         self.assertNotContains(response, "Apply for 2027 training")
-        self.assertNotContains(response, f'href="{reverse("camp:apply")}"')
 
     def test_academy_opportunity_is_accessible_from_home(self):
         response = self.client.get(reverse("home"))
