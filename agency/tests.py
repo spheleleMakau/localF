@@ -42,7 +42,7 @@ class HomePageTests(TestCase):
         self.assertContains(response, "agency/img/founder.jpeg")
         self.assertContains(response, "agency/img/founder1.jpeg")
         self.assertContains(response, "agency/img/hero-collage.jpg")
-        for label in ("Home", "About", "Talent", "Training", "Photography", "Contact"):
+        for label in ("Home", "About", "Talent", "Training", "Contact"):
             self.assertContains(response, f">{label}</a>")
 
     def test_model_slideshow_has_requested_images(self):
@@ -93,6 +93,16 @@ class HomePageTests(TestCase):
         self.assertContains(response, 'aria-label="Local Faces Entertainment"')
         self.assertNotContains(response, '<span class="brand-tagline">Talent Agency')
 
+    def test_navigation_has_accessible_mobile_menu(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, 'aria-expanded="false" aria-controls="primary-navigation" data-menu-toggle')
+        self.assertContains(response, 'id="primary-navigation" aria-label="Main navigation" data-navigation')
+        for label in ("Home", "About", "Talent", "Training", "Cart", "Contact"):
+            self.assertContains(response, f">{label}</a>")
+        for fragment in ("photography", "entertainment", "merchandise"):
+            self.assertNotContains(response, f'href="{reverse("home")}#{fragment}"')
+            self.assertContains(response, f'id="{fragment}"')
+
     def test_homepage_navigation_and_fragment_links_resolve(self):
         response = self.client.get("/")
         parser = PageLinksParser()
@@ -132,6 +142,8 @@ class HomePageTests(TestCase):
 
     def test_training_links_go_to_details_and_shop(self):
         response = self.client.get(reverse("home"))
+        self.assertContains(response, '<a class="service" href="#training-information">')
+        self.assertContains(response, '<div class="academy-copy" id="training-information">')
         self.assertContains(response, f'href="{reverse("training_shop")}"')
         self.assertContains(
             response,
