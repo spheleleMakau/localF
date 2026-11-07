@@ -53,26 +53,23 @@
       <p class="eyebrow">Learn. Practise. Grow.</p>
       <h2 id="academy-title">LOCAL FACES ENTERTAINMENT<br><span>MODELLING ACADEMY</span></h2>
       <p class="academy-intro">Industry-focused training to develop, equip and prepare you for real opportunities.</p>
-      <ul class="checklist">
-        <li>Modelling &amp; Runway</li>
-        <li>On-Camera &amp; Audition Skills</li>
-        <li>Confidence &amp; Self-Esteem</li>
-        <li>Branding &amp; Social Media</li>
-        <li>Industry Knowledge &amp; Representation</li>
-      </ul>
-      {% include "agency/_training_details.html" %}
+      {% include "agency/_course_topics.html" %}
+      {% include "agency/_training_details.html" with show_course_topics=False %}
       <a class="button button-champagne" href="{% url 'training_shop' %}">Purchase training <span aria-hidden="true">→</span></a>
-      <a class="shop-link" href="{% url 'academy_opportunity' %}">Start a Local Faces academy in your city →</a>
+      <a class="shop-link" href="{% url 'academy_opportunity' %}">Start your academy →</a>
     </div>
     <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
   </section>
 
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
-    <a class="tile" href="#join">
-      <img src="{% static 'agency/img/talent-models.jpg' %}" alt="Model in a red top and jeans" width="213" height="173" loading="lazy">
-      <span class="tile-text"><strong>Models</strong><small>All sizes. All ages.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
-    </a>
+    <div class="model-slideshow" data-model-slideshow>
+      <a class="tile" href="#join">
+        <img src="{% static 'agency/img/talent-models.jpg' %}" alt="" width="213" height="173" loading="lazy" data-model-slide>
+        <img src="{% static 'agency/img/founder-portrait.jpg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <span class="tile-text"><strong>Models</strong><small>All sizes. All ages.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
     <a class="tile" href="#join">
       <img src="{% static 'agency/img/talent-entertainers.jpg' %}" alt="Entertainer in a black sleeveless top" width="212" height="173" loading="lazy">
       <span class="tile-text"><strong>Entertainers</strong><small>Actors, Presenters, MCs &amp; Creators.</small></span><span class="tile-arrow" aria-hidden="true">→</span>

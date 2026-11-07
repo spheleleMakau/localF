@@ -9,6 +9,7 @@ urlpatterns = [
     path("join/", views.join, name="join"),
     path("academy-opportunity/", shop.academy_opportunity, name="academy_opportunity"),
     path("shop/", shop.shop, name="training_shop"),
+    path("shop/application/", shop.training_application, name="training_application"),
     path("shop/cart/", shop.cart, name="training_cart"),
     path("shop/cart/remove/<int:index>/", shop.remove_item, name="training_cart_remove"),
     path("shop/checkout/", shop.checkout, name="training_checkout"),

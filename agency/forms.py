@@ -3,8 +3,8 @@ from django import forms
 
 class AddTrainingForm(forms.Form):
     training = forms.ChoiceField(choices=[
-        ("course", "6-week group course - R500 registration"),
-        ("individual", "One-on-one training - R1,500 per hour"),
+        ("course", "Group course - R500 non-refundable registration"),
+        ("individual", "One-on-one training"),
     ])
     term = forms.ChoiceField(choices=[(str(n), f"Term {n}") for n in range(1, 5)])
     city = forms.ChoiceField(

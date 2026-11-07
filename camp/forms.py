@@ -219,9 +219,7 @@ class ApplicationForm(forms.ModelForm):
         application = super().save(commit=False)
         application.submission_key = self.cleaned_data["submission_key"]
         application.age = self.cleaned_data["age"]
-        application.available_full_five_weeks = self.cleaned_data[
-            "available_full_five_weeks"
-        ]
+        application.available_full_five_weeks = self.cleaned_data.get("available_full_five_weeks")
         application.privacy_consent = self.cleaned_data["privacy_consent"]
         application.photo_consent = self.cleaned_data["photo_consent"]
         application.guardian_consent = self.cleaned_data["guardian_consent"]
@@ -252,7 +250,7 @@ class ApplicationForm(forms.ModelForm):
                     self.saved_photo_paths.append(photo.image.name)
 
 
-class ModelApplicationForm(ApplicationForm):
+class SizedApplicationForm(ApplicationForm):
     shoe_size = forms.CharField(label="Shoe size", max_length=30)
     pants_size = forms.CharField(label="Pants size", max_length=30)
     dress_size = forms.CharField(label="Dress size", max_length=30, required=False)
@@ -275,6 +273,15 @@ class ModelApplicationForm(ApplicationForm):
             cleaned_data["skirt_size"] = ""
         return cleaned_data
 
+
+class TalentStyleApplicationForm(SizedApplicationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in ("age_category", "preferred_days", "available_full_five_weeks"):
+            self.fields.pop(field)
+
+
+class ModelApplicationForm(TalentStyleApplicationForm):
     def save(self, commit=True):
         application = super().save(commit=False)
         application.kind = Application.Kind.MODEL
@@ -282,3 +289,11 @@ class ModelApplicationForm(ApplicationForm):
             application.save()
             self.save_photos(application)
         return application
+
+
+class TrainingApplicationForm(SizedApplicationForm):
+    pass
+
+
+class IndividualTrainingApplicationForm(TalentStyleApplicationForm):
+    pass

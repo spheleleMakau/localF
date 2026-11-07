@@ -77,20 +77,14 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "Monday")
         self.assertNotContains(response, "Areas of interest")
         self.assertNotContains(response, "Select all areas you are interested in.")
-        self.assertContains(response, "Which day are you available?")
-        self.assertContains(response, 'name="preferred_days"')
-        self.assertContains(response, 'value="Friday"')
-        self.assertContains(response, 'value="Saturday"')
-        self.assertContains(response, 'value="Sunday"')
+        self.assertNotContains(response, 'name="preferred_days"')
+        self.assertNotContains(response, 'name="available_full_five_weeks"')
         self.assertContains(response, 'type="radio"')
         self.assertNotContains(response, 'name="areas_of_interest"')
         self.assertNotContains(response, "Preferred time")
         self.assertNotContains(response, 'name="preferred_time"')
         self.assertContains(response, "MODEL APPLICATION")
-        self.assertContains(response, "Age category")
-        self.assertContains(response, "Kids (5–12)")
-        self.assertContains(response, "Teens (13–18)")
-        self.assertContains(response, "Seniors (19–28)")
+        self.assertNotContains(response, 'name="age_category"')
         self.assertContains(response, "Gender")
         self.assertContains(response, "Male")
         self.assertContains(response, "Female")
@@ -99,7 +93,6 @@ class CampPagesTests(TestCase):
         self.assertTrue(response.context["form"]["age"].field.required)
         self.assertTrue(response.context["form"]["city"].field.required)
         self.assertTrue(response.context["form"]["town"].field.required)
-        self.assertContains(response, "Available for the full 6 weeks?")
         self.assertContains(response, "Do you have any modelling experience?")
         self.assertContains(response, "Instagram handle")
         self.assertContains(response, "TikTok handle")
@@ -257,12 +250,12 @@ class ApplicationSubmissionTests(TestCase):
         self.assertIsNone(application.date_of_birth)
         self.assertEqual(application.city, "Cape Town")
         self.assertEqual(application.town, "Sea Point")
-        self.assertEqual(application.age_category, Application.AgeCategory.SENIORS)
+        self.assertEqual(application.age_category, "")
         self.assertEqual(application.gender, Application.Gender.FEMALE)
         self.assertNotIn("Date of Birth:", message)
-        self.assertEqual(application.preferred_days, ["Friday"])
+        self.assertEqual(application.preferred_days, [])
         self.assertEqual(application.areas_of_interest, [])
-        self.assertTrue(application.available_full_five_weeks)
+        self.assertIsNone(application.available_full_five_weeks)
         self.assertTrue(application.has_modelling_experience)
         self.assertEqual(application.tiktok_handle, "@jordanstudio")
         self.assertEqual(application.photos.count(), 2)
@@ -319,14 +312,11 @@ class ApplicationSubmissionTests(TestCase):
             application.application_number,
             "Jordan Example",
             "20",
-            "Age category: Seniors (19–28)",
             "Gender: Female",
             "City: Cape Town",
             "Town: Sea Point",
             "jordan@example.com",
             "Student",
-            "Available day: Friday",
-            "Available for Full 6 Weeks: Yes",
             "Modelling experience: Yes",
             "Community theatre",
             "Instagram: @jordan",
@@ -349,8 +339,9 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(full_application.status_code, 200)
         self.assertContains(full_application, "Jordan Example")
         self.assertContains(full_application, "Community theatre")
-        self.assertContains(full_application, "Friday")
-        self.assertContains(full_application, "Seniors (19–28)")
+        self.assertNotIn("Age category:", message)
+        self.assertNotIn("Available day:", message)
+        self.assertNotIn("Available for Full 6 Weeks:", message)
         self.assertContains(full_application, "Female")
         self.assertContains(full_application, "Cape Town")
         self.assertContains(full_application, "Sea Point")
@@ -407,12 +398,12 @@ class ApplicationSubmissionTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertFalse(Application.objects.exists())
 
-    def test_availability_and_modelling_experience_are_required(self):
+    def test_modelling_experience_is_required(self):
         no_available_days = self.submission_data()
         no_available_days.pop("preferred_days")
         response = self.client.post(reverse("join"), no_available_days)
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
+        self.assertEqual(response.status_code, 302)
+        Application.objects.all().delete()
 
         no_experience_answer = self.submission_data()
         no_experience_answer.pop("has_modelling_experience")
@@ -438,14 +429,11 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(application.has_modelling_experience)
         self.assertEqual(application.previous_experience, "")
 
-    def test_age_category_must_match_typed_age(self):
-        response = self.client.post(
-            reverse("join"),
-            self.submission_data(age_category="kids"),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
-        self.assertContains(response, "matches your age")
+    def test_training_age_category_must_match_typed_age(self):
+        from .forms import TrainingApplicationForm
+        form = TrainingApplicationForm(self.submission_data(age_category="kids"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("matches your age", form.errors["age_category"][0])
 
     def test_kids_category_accepts_age_12_and_shows_2027_notice(self):
         response = self.client.post(
@@ -462,12 +450,8 @@ class ApplicationSubmissionTests(TestCase):
         application = Application.objects.get()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(application.age, 12)
-        self.assertEqual(application.age_category, Application.AgeCategory.KIDS)
+        self.assertEqual(application.age_category, "")
         self.assertEqual(application.gender, Application.Gender.MALE)
-        self.assertIn(
-            "Age category: Kids (5–12)",
-            parse_qs(urlsplit(response["Location"]).query)["text"][0],
-        )
 
     def test_age_outside_category_ranges_is_rejected(self):
         for age in ("4", "29"):

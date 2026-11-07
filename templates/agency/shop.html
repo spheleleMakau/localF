@@ -2,28 +2,40 @@
 {% load static %}
 {% block title %}Book training — Local Faces{% endblock %}
 {% block camp_content %}
-<section class="shop-page" data-training-shop-page>
+<section class="shop-page training-shop-page" data-training-shop-page>
   <p class="eyebrow">Learn with Local Faces</p>
   <h1>Choose your training</h1>
-  {% include "agency/_training_details.html" %}
-  <p>Choose a 2027 term and city. Dates and arrangements will be confirmed with you. Enquiries: <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>.</p>
-  <form method="post" class="shop-form" data-training-shop>
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-      <div class="shop-field" {% if field.name == "other_city" %}data-other-city{% elif field.name == "hours" %}data-training-hours{% endif %}>
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% if field.name == "city" %}
-          <small data-city-help="course">Group courses are available in Durban, Johannesburg and Cape Town.</small>
-          <small data-city-help="individual">One-on-one training is available in all cities.</small>
-        {% elif field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-        {{ field.errors }}
-      </div>
-    {% endfor %}
-    <button class="button button-champagne" type="submit">Add to cart</button>
-    <a class="shop-link" href="{% url 'training_cart' %}">View cart</a>
-  </form>
+  <p>Choose your training, 2027 term and city. Dates and arrangements will be confirmed with you.</p>
+  <div class="training-shop-layout">
+    <div class="training-shop-details" id="training-information">
+      <h2>Training details</h2>
+      {% include "agency/_training_details.html" %}
+    </div>
+    <div class="training-shop-form" id="training-selection">
+      <h2>Make your selection</h2>
+      <p>Choose an option to see its details and add it to your cart. <a href="#training-information">View training details</a>.</p>
+      <form method="post" class="shop-form" data-training-shop>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <div class="shop-field" {% if field.name == "other_city" %}data-other-city{% elif field.name == "hours" %}data-training-hours{% endif %}>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == "training" %}
+              <small data-training-details="course">Group course: R500 non-refundable registration.</small>
+            {% elif field.name == "city" %}
+              <small data-city-help="course">Group courses are available in Durban, Johannesburg and Cape Town.</small>
+              <small data-city-help="individual">One-on-one training is available in all cities.</small>
+            {% elif field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <p>Complete an applicant form with two photographs before adding training to your cart.</p>
+        <button class="button button-champagne" type="submit">Continue to applicant form</button>
+        <a class="shop-link" href="{% url 'training_cart' %}">View cart</a>
+      </form>
+    </div>
+  </div>
 </section>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'agency/js/shop.js' %}" defer></script>{% endblock %}
+{% block extra_scripts %}<script src="{% static 'agency/js/shop.js' %}?v=2" defer></script>{% endblock %}

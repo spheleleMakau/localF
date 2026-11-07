@@ -10,6 +10,8 @@ The model application collects details and photographs and uses a WhatsApp hando
 
 The academy business opportunity costs R5,000: R1,666.67 is payable through the cart, and the remaining R1,666.67 and R1,666.66 are arranged separately for months two and three. The proposed city and remaining instalments are recorded in the order. Staff must discuss availability and operating terms with the customer and track later payments separately; an online payment does not automatically grant exclusivity or approve a location.
 
+Each group-course and one-on-one booking requires an applicant form, sizes and two photographs before it can be added to the cart. The one-on-one form follows the talent-pool application, while the group form includes course availability questions. Applications are stored when submitted, even if the cart is abandoned or the item is removed; staff can find the application number in the order's item snapshot and review it in Django admin. Existing training cart items without an application must be removed and added again.
+
 ## PayFast checkout
 
 Set the following environment variables before accepting payments:

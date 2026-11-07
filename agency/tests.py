@@ -1,10 +1,15 @@
 from html.parser import HTMLParser
 from decimal import Decimal
 from unittest.mock import patch
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from camp.models import Application
+from camp.tests import make_png
 from .models import TrainingOrder
 from .payfast import signature
 
@@ -37,6 +42,15 @@ class HomePageTests(TestCase):
         self.assertContains(response, "agency/img/founder-portrait.jpg")
         for label in ("Home", "About", "Talent", "Training", "Photography", "Contact"):
             self.assertContains(response, f">{label}</a>")
+
+    def test_model_slideshow_has_requested_images(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "data-model-slide", count=3)
+        self.assertNotContains(response, "data-slideshow-control")
+        self.assertNotContains(response, "agency/img/hero-smile.jpg")
+        self.assertNotContains(response, "agency/img/hero-profile.jpg")
+        self.assertContains(response, "agency/img/talent-models.jpg")
+        self.assertContains(response, "agency/img/founder-portrait.jpg")
 
     def test_logos_use_entertainment_branding(self):
         response = self.client.get(reverse("home"))
@@ -91,9 +105,27 @@ class HomePageTests(TestCase):
         )
         self.assertNotContains(response, "Apply for 2027 training")
 
+    def test_course_topics_appear_on_homepage_and_course_details(self):
+        topics = (
+            "Modelling &amp; Runway",
+            "On-Camera &amp; Audition Skills",
+            "Confidence &amp; Self-Esteem",
+            "Branding &amp; Social Media",
+            "Industry Knowledge &amp; Representation",
+        )
+        home = self.client.get(reverse("home"))
+        for topic in topics:
+            self.assertContains(home, topic, count=1)
+        for url in (reverse("camp:apply"), reverse("camp:apply_form"), reverse("training_shop")):
+            response = self.client.get(url)
+            self.assertContains(response, "What the course covers")
+            for topic in topics:
+                self.assertContains(response, topic)
+
     def test_academy_opportunity_is_accessible_from_home(self):
         response = self.client.get(reverse("home"))
         self.assertContains(response, reverse("academy_opportunity"))
+        self.assertContains(response, f'href="{reverse("academy_opportunity")}">Start your academy →</a>')
         response = self.client.get(reverse("academy_opportunity"))
         self.assertContains(response, "Three payments.")
         self.assertContains(response, "R5,000.")
@@ -115,10 +147,38 @@ class HomePageTests(TestCase):
     PAYFAST_SANDBOX=True,
 )
 class TrainingShopTests(TestCase):
+    def setUp(self):
+        self.media_directory = TemporaryDirectory()
+        self.addCleanup(self.media_directory.cleanup)
+        settings_override = override_settings(MEDIA_ROOT=Path(self.media_directory.name))
+        settings_override.enable()
+        self.addCleanup(settings_override.disable)
+
+    def application_data(self, **overrides):
+        pending = self.client.session["pending_training"]
+        data = {
+            "submission_key": pending["submission_key"],
+            "full_name": "Alex Example", "email": "alex@example.com",
+            "phone": "123456789", "whatsapp_number": "123456789",
+            "age": "20", "age_category": "seniors", "gender": "female",
+            "city": pending["city"], "town": "Central", "current_occupation": "Student",
+            "preferred_days": "Friday", "available_full_five_weeks": "yes",
+            "has_modelling_experience": "no", "shoe_size": "6", "pants_size": "32",
+            "dress_size": "10", "skirt_size": "10", "top_size": "M",
+            "privacy_consent": "on", "photo_consent": "on",
+            "headshot": SimpleUploadedFile("headshot.png", make_png(), content_type="image/png"),
+            "full_length_photo": SimpleUploadedFile("full.png", make_png(), content_type="image/png"),
+        }
+        data.update(overrides)
+        return data
+
     def add_item(self, **overrides):
         data = {"training": "course", "term": "2", "city": "Durban", "hours": "1"}
         data.update(overrides)
-        return self.client.post(reverse("training_shop"), data)
+        response = self.client.post(reverse("training_shop"), data)
+        if response.status_code == 302 and response["Location"] == reverse("training_application"):
+            return self.client.post(reverse("training_application"), self.application_data())
+        return response
 
     def create_order(self):
         self.add_item()
@@ -146,11 +206,136 @@ class TrainingShopTests(TestCase):
         self.assertEqual(order.items[0]["subtotal"], "1666.67")
         self.assertEqual(order.items[0]["balance_due"], "3333.33")
         self.assertEqual(order.items[0]["remaining_installments"], ["1666.67", "1666.66"])
+        self.assertEqual(order.items[1]["application_number"], Application.objects.get().application_number)
         payment = self.client.get(response["Location"])
         self.assertContains(payment, 'name="amount" value="2166.67"')
         self.assertContains(payment, "month two")
         self.assertContains(payment, "month three")
         self.assertContains(self.client.get(reverse("training_payment_return", args=[order.token])), "month three")
+
+    def test_group_application_is_required_and_records_sizes_and_photos(self):
+        response = self.client.post(reverse("training_shop"), {
+            "training": "course", "term": "2", "city": "Durban", "hours": "1",
+        })
+        self.assertRedirects(response, reverse("training_application"))
+        self.assertEqual(self.client.get(reverse("training_cart")).context["items"], [])
+        self.assertRedirects(self.client.post(reverse("training_checkout")), reverse("training_cart"))
+        page = self.client.get(reverse("training_application"))
+        self.assertContains(page, 'name="shoe_size"')
+        self.assertContains(page, 'name="dress_size"')
+        data = self.application_data(dress_size="", skirt_size="")
+        data.pop("headshot")
+        response = self.client.post(reverse("training_application"), data)
+        self.assertFormError(response.context["form"], "headshot", "This field is required.")
+        self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertFalse(Application.objects.exists())
+        response = self.client.post(reverse("training_application"), self.application_data())
+        self.assertRedirects(response, reverse("training_cart"))
+        application = Application.objects.get()
+        self.assertEqual(application.kind, Application.Kind.TRAINING)
+        self.assertEqual((application.shoe_size, application.dress_size, application.top_size), ("6", "10", "M"))
+        self.assertEqual(application.photos.count(), 2)
+        self.assertContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+        self.assertEqual(self.client.session["training_cart"][0]["application_number"], application.application_number)
+
+    def test_group_application_prefills_city_and_preserves_edited_city(self):
+        for city in ("Durban", "Johannesburg", "Cape Town"):
+            with self.subTest(city=city):
+                self.client.post(reverse("training_shop"), {
+                    "training": "course", "term": "2", "city": city,
+                })
+                response = self.client.get(reverse("training_application"))
+                self.assertEqual(response.context["form"]["city"].value(), city)
+                self.assertContains(response, f'value="{city}"')
+
+        data = self.application_data(city="Pretoria", dress_size="")
+        response = self.client.post(reverse("training_application"), data)
+        self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertEqual(response.context["form"]["city"].value(), "Pretoria")
+        response = self.client.post(reverse("training_application"), self.application_data(city="Pretoria"))
+        self.assertRedirects(response, reverse("training_cart"))
+        self.assertEqual(Application.objects.get().city, "Pretoria")
+        self.assertEqual(self.client.session["training_cart"][0]["city"], "Cape Town")
+
+    def test_legacy_group_item_cannot_bypass_application(self):
+        session = self.client.session
+        session["training_cart"] = [{"training": "course", "city": "Durban", "term": "1", "hours": 1}]
+        session.save()
+        response = self.client.post(reverse("training_checkout"), follow=True)
+        self.assertContains(response, "needs an application")
+        self.assertFalse(TrainingOrder.objects.exists())
+
+    def test_one_on_one_requires_talent_style_form_before_checkout(self):
+        response = self.client.post(reverse("training_shop"), {
+            "training": "individual", "term": "4", "city": "other",
+            "other_city": "Pretoria", "hours": "2",
+        })
+        self.assertRedirects(response, reverse("training_application"))
+        self.assertEqual(self.client.get(reverse("training_cart")).context["items"], [])
+        page = self.client.get(reverse("training_application"))
+        self.assertContains(page, "One-on-one training")
+        self.assertNotContains(page, "R500 registration")
+        self.assertNotContains(page, 'name="age_category"')
+        self.assertNotContains(page, 'name="preferred_days"')
+        self.assertNotContains(page, 'name="available_full_five_weeks"')
+        self.assertContains(page, 'name="shoe_size"')
+        self.assertContains(page, 'name="headshot"')
+        self.assertEqual(page.context["form"]["city"].value(), "Pretoria")
+
+        data = self.application_data(dress_size="", skirt_size="")
+        data.pop("headshot")
+        data.pop("age_category")
+        data.pop("preferred_days")
+        data.pop("available_full_five_weeks")
+        response = self.client.post(reverse("training_application"), data)
+        self.assertFormError(response.context["form"], "headshot", "This field is required.")
+        self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertFalse(Application.objects.exists())
+
+        data = self.application_data()
+        for field in ("age_category", "preferred_days", "available_full_five_weeks"):
+            data.pop(field)
+        self.assertRedirects(self.client.post(reverse("training_application"), data), reverse("training_cart"))
+        application = Application.objects.get()
+        self.assertEqual(application.kind, Application.Kind.TRAINING)
+        self.assertEqual((application.city, application.dress_size, application.photos.count()), ("Pretoria", "10", 2))
+        cart = self.client.get(reverse("training_cart"))
+        self.assertContains(cart, application.application_number)
+        self.assertEqual(cart.context["total"], Decimal("3000.00"))
+        self.client.post(reverse("training_checkout"))
+        order = TrainingOrder.objects.get()
+        self.assertEqual(order.items[0]["application_number"], application.application_number)
+        self.assertEqual(order.total, Decimal("3000.00"))
+
+    def test_legacy_one_on_one_item_cannot_bypass_application(self):
+        session = self.client.session
+        session["training_cart"] = [{"training": "individual", "city": "Durban", "term": "1", "hours": 1}]
+        session.save()
+        response = self.client.post(reverse("training_checkout"), follow=True)
+        self.assertContains(response, "needs an application")
+        self.assertFalse(TrainingOrder.objects.exists())
+
+    def test_group_application_male_and_selection_cannot_be_bypassed(self):
+        self.assertRedirects(self.client.get(reverse("training_application")), reverse("training_shop"))
+        self.client.post(reverse("training_shop"), {"training": "course", "term": "1", "city": "Durban"})
+        response = self.client.post(reverse("training_application"), self.application_data(
+            gender="male", dress_size="10", skirt_size="10",
+        ))
+        self.assertRedirects(response, reverse("training_cart"))
+        applicant = Application.objects.get()
+        self.assertEqual((applicant.dress_size, applicant.skirt_size), ("", ""))
+        applicant.delete()
+        response = self.client.post(reverse("training_checkout"), follow=True)
+        self.assertContains(response, "needs an application")
+        self.assertFalse(TrainingOrder.objects.exists())
+
+    @patch("agency.shop.TrainingApplicationForm.save", side_effect=OSError("Disk unavailable"))
+    def test_group_application_storage_failure_does_not_add_to_cart(self, _save):
+        self.client.post(reverse("training_shop"), {"training": "course", "term": "1", "city": "Durban"})
+        response = self.client.post(reverse("training_application"), self.application_data())
+        self.assertContains(response, "couldn&#x27;t save your application")
+        self.assertEqual(self.client.session.get("training_cart", []), [])
+        self.assertFalse(Application.objects.exists())
 
     def test_academy_rejects_missing_city_and_cart_limit(self):
         response = self.client.post(reverse("academy_opportunity"), {"city": " "})
@@ -210,6 +395,14 @@ class TrainingShopTests(TestCase):
 
     def test_select_city_and_add_group_course(self):
         response = self.client.get(reverse("training_shop"))
+        self.assertContains(response, "Make your selection")
+        self.assertContains(response, 'href="#training-information"')
+        self.assertContains(response, 'id="training-information"')
+        self.assertContains(response, 'data-training-details="course"')
+        self.assertContains(response, 'data-training-details="individual"')
+        self.assertContains(response, 'data-training-shop')
+        self.assertContains(response, 'Group course - R500 non-refundable registration')
+        self.assertContains(response, 'Group course: R500 non-refundable registration.')
         self.assertContains(response, '<select name="city"')
         self.assertContains(response, '>Other city</option>')
         self.assertNotContains(response, "Other city (one-on-one only)")

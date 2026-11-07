@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib import messages
-from django.db import transaction
+from django.core.files.storage import default_storage
+from django.db import DatabaseError, IntegrityError, transaction
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
@@ -15,6 +16,8 @@ from django.views.decorators.http import require_POST
 from . import payfast
 from .forms import AcademyOpportunityForm, AddTrainingForm
 from .models import TrainingOrder
+from camp.forms import IndividualTrainingApplicationForm, TrainingApplicationForm
+from camp.models import Application
 
 logger = logging.getLogger(__name__)
 PRICES = {"course": Decimal("500.00"), "individual": Decimal("1500.00"), "academy": Decimal("1666.67")}
@@ -51,11 +54,54 @@ def shop(request):
         if len(cart) >= 100:
             form.add_error(None, "Your cart can contain at most 100 training items.")
         else:
-            cart.append(item)
-            request.session["training_cart"] = cart
-            messages.success(request, "Training added to your cart.")
-            return redirect("training_cart")
+            request.session["pending_training"] = {
+                **item, "submission_key": str(uuid.uuid4()),
+            }
+            return redirect("training_application")
     return render(request, "agency/shop.html", {"form": form})
+
+
+def training_application(request):
+    pending = request.session.get("pending_training")
+    if not pending or pending.get("training") not in ("course", "individual"):
+        messages.error(request, "Choose training before completing the applicant form.")
+        return redirect("training_shop")
+    form_class = TrainingApplicationForm if pending["training"] == "course" else IndividualTrainingApplicationForm
+    form = form_class(
+        request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None,
+        initial={"submission_key": pending["submission_key"], "city": pending["city"]},
+    )
+    if request.method == "POST" and form.is_valid():
+        if str(form.cleaned_data["submission_key"]) != pending["submission_key"]:
+            form.add_error(None, "This form is no longer current. Please choose your training again.")
+        elif len(request.session.get("training_cart", [])) >= 100:
+            form.add_error(None, "Your cart can contain at most 100 training items.")
+        else:
+            try:
+                with transaction.atomic():
+                    application = Application.objects.filter(submission_key=pending["submission_key"]).first()
+                    if application is None:
+                        application = form.save()
+                    elif application.kind != Application.Kind.TRAINING:
+                        raise IntegrityError("Submission key belongs to a different application.")
+                cart = request.session.get("training_cart", [])
+                item = {key: value for key, value in pending.items() if key != "submission_key"}
+                item["application_number"] = application.application_number
+                cart.append(item)
+                request.session["training_cart"] = cart
+                del request.session["pending_training"]
+                messages.success(request, "Training and applicant details added to your cart.")
+                return redirect("training_cart")
+            except (DatabaseError, OSError):
+                for image_path in form.saved_photo_paths:
+                    try:
+                        default_storage.delete(image_path)
+                    except OSError:
+                        logger.exception("Could not remove an incomplete applicant photo.")
+                logger.exception("Could not save a training application.")
+                form.add_error(None, "We couldn't save your application. Please try again.")
+    return render(request, "agency/training_application.html", {"form": form, "selection": pending})
 
 
 def academy_opportunity(request):
@@ -97,6 +143,15 @@ def checkout(request):
     items = cart_items(request)
     if not items:
         messages.error(request, "Your cart is empty. Add an item before checking out.")
+        return redirect("training_cart")
+    application_numbers = [
+        item.get("application_number") for item in items if item["training"] in ("course", "individual")
+    ]
+    valid_applications = set(Application.objects.filter(
+        kind=Application.Kind.TRAINING, application_number__in=application_numbers,
+    ).values_list("application_number", flat=True))
+    if any(number not in valid_applications for number in application_numbers):
+        messages.error(request, "A training item in your cart needs an application. Remove it and add it again to complete the form.")
         return redirect("training_cart")
     if not configured():
         messages.error(request, "PayFast is not configured yet. Please contact info@localfaces.co.za.")
