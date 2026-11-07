@@ -31,23 +31,7 @@
             {% endif %}
           {% endfor %}
         </div>
-        <fieldset class="photo-uploads">
-          <legend>Applicant photographs <span class="required-mark">*</span></legend>
-          <p class="photo-uploads-intro">Upload two photos: one full-length and one profile photo or selfie. JPG, JPEG or PNG.</p>
-          <div class="photo-uploads-grid">
-            {% for field in form %}
-              {% if field.name == "headshot" or field.name == "full_length_photo" %}
-                <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
-                  <label for="{{ field.id_for_label }}">{{ field.label }}<span class="required-mark">*</span></label>
-                  <div class="upload-box"><span class="upload-icon" aria-hidden="true">↥</span>{{ field }}<span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG</small></div>
-                  {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
-                  <div class="photo-preview" data-photo-preview aria-live="polite"></div>
-                  {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
-                </div>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </fieldset>
+        {% include "agency/_photo_uploads.html" %}
         <div class="privacy-note"><strong>Privacy:</strong> Your details and photographs are collected for application review and follow-up by Local Faces Agency. Submitting this form does not publish your photographs. Please do not include sensitive information that is not relevant to your application.</div>
         <div class="consent-fields">
           {% for field in form %}

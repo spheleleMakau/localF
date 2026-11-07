@@ -39,18 +39,52 @@ class HomePageTests(TestCase):
         self.assertContains(response, "MODELLING ACADEMY")
         self.assertNotContains(response, "SUMMER MODELLING ACADEMY")
         self.assertContains(response, "Get Represented")
-        self.assertContains(response, "agency/img/founder-portrait.jpg")
+        self.assertContains(response, "agency/img/founder.jpeg")
+        self.assertContains(response, "agency/img/founder1.jpeg")
+        self.assertContains(response, "agency/img/hero-collage.jpg")
         for label in ("Home", "About", "Talent", "Training", "Photography", "Contact"):
             self.assertContains(response, f">{label}</a>")
 
     def test_model_slideshow_has_requested_images(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "data-model-slide", count=3)
+        self.assertContains(response, " data-model-slide>", count=1)
+        self.assertContains(response, " data-model-slide hidden>", count=5)
         self.assertNotContains(response, "data-slideshow-control")
         self.assertNotContains(response, "agency/img/hero-smile.jpg")
         self.assertNotContains(response, "agency/img/hero-profile.jpg")
-        self.assertContains(response, "agency/img/talent-models.jpg")
-        self.assertContains(response, "agency/img/founder-portrait.jpg")
+        self.assertContains(response, f'href="{reverse("models_gallery")}"')
+        gallery = self.client.get(reverse("models_gallery"))
+        for filename in ("model.jpeg", "model1.jpeg", "model2.jpeg", "model3.jpeg", "model4.jpeg", "model5.jpeg"):
+            self.assertContains(response, f"agency/img/{filename}")
+            self.assertContains(gallery, f"agency/img/{filename}")
+
+    def test_founder_portfolio_is_accessible_from_home(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, f'href="{reverse("founder_portfolio")}"')
+        portfolio = self.client.get(reverse("founder_portfolio"))
+        for filename in ("brand.jpeg", "brand1.jpeg", "brand2.jpeg", "brand4.jpeg", "brand5.jpeg", "brand6.jpeg"):
+            self.assertContains(portfolio, f"agency/img/{filename}")
+        self.assertNotContains(portfolio, "brand3.jpeg")
+
+    def test_entertainer_slideshow_has_requested_images(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, f'href="{reverse("entertainers_gallery")}" aria-label="View the entertainers gallery" data-entertainer-slideshow')
+        self.assertContains(response, " data-entertainer-slide>", count=1)
+        self.assertContains(response, " data-entertainer-slide hidden>", count=2)
+        gallery = self.client.get(reverse("entertainers_gallery"))
+        self.assertContains(gallery, "Entertainers.")
+        for filename in ("e.jpeg", "e1.jpeg", "e2.jpeg"):
+            self.assertContains(response, f"agency/img/{filename}")
+            self.assertContains(gallery, f"agency/img/{filename}", count=1)
+
+    def test_selfie_example_in_model_and_training_forms(self):
+        self.assertContains(self.client.get(reverse("join")), "agency/img/self.jpeg")
+        response = self.client.post(reverse("training_shop"), {"training": "course", "term": "1", "city": "Durban"})
+        self.assertRedirects(response, reverse("training_application"))
+        self.assertContains(self.client.get(reverse("training_application")), "agency/img/self.jpeg")
+        response = self.client.post(reverse("training_shop"), {"training": "individual", "term": "1", "city": "Durban", "hours": "1"})
+        self.assertRedirects(response, reverse("training_application"))
+        self.assertContains(self.client.get(reverse("training_application")), "agency/img/self.jpeg")
 
     def test_logos_use_entertainment_branding(self):
         response = self.client.get(reverse("home"))
@@ -127,6 +161,8 @@ class HomePageTests(TestCase):
         self.assertContains(response, reverse("academy_opportunity"))
         self.assertContains(response, f'href="{reverse("academy_opportunity")}">Start your academy →</a>')
         response = self.client.get(reverse("academy_opportunity"))
+        self.assertContains(response, "agency/img/model4.jpeg")
+        self.assertNotContains(response, "agency/img/academy-main.jpg")
         self.assertContains(response, "Three payments.")
         self.assertContains(response, "R5,000.")
         self.assertContains(response, "R1,666.67")

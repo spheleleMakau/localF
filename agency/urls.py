@@ -7,6 +7,9 @@ from . import shop
 urlpatterns = [
     path("", views.home, name="home"),
     path("join/", views.join, name="join"),
+    path("models/", views.models_gallery, name="models_gallery"),
+    path("entertainers/", views.entertainers_gallery, name="entertainers_gallery"),
+    path("founder-portfolio/", views.founder_portfolio, name="founder_portfolio"),
     path("academy-opportunity/", shop.academy_opportunity, name="academy_opportunity"),
     path("shop/", shop.shop, name="training_shop"),
     path("shop/application/", shop.training_application, name="training_application"),

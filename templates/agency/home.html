@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="hero-collage">
-      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Three Local Faces models: a model in a white shirt, a model in profile and a smiling model in a black top" width="757" height="388" fetchpriority="high">
+      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces collage featuring models and a photographer" width="757" height="388" fetchpriority="high">
     </div>
   </section>
 
@@ -64,14 +64,20 @@
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
     <div class="model-slideshow" data-model-slideshow>
-      <a class="tile" href="#join">
-        <img src="{% static 'agency/img/talent-models.jpg' %}" alt="" width="213" height="173" loading="lazy" data-model-slide>
-        <img src="{% static 'agency/img/founder-portrait.jpg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <span class="tile-text"><strong>Models</strong><small>All sizes. All ages.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+      <a class="tile" href="{% url 'models_gallery' %}" aria-label="View the models gallery">
+        <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy" data-model-slide>
+        <img src="{% static 'agency/img/model1.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <img src="{% static 'agency/img/model2.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <img src="{% static 'agency/img/model3.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <img src="{% static 'agency/img/model4.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <img src="{% static 'agency/img/model5.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
+        <span class="tile-text"><strong>Models</strong><small>Explore our gallery.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
       </a>
     </div>
-    <a class="tile" href="#join">
-      <img src="{% static 'agency/img/talent-entertainers.jpg' %}" alt="Entertainer in a black sleeveless top" width="212" height="173" loading="lazy">
+    <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="View the entertainers gallery" data-entertainer-slideshow>
+      <img src="{% static 'agency/img/e.jpeg' %}" alt="" loading="lazy" data-entertainer-slide>
+      <img src="{% static 'agency/img/e1.jpeg' %}" alt="" loading="lazy" data-entertainer-slide hidden>
+      <img src="{% static 'agency/img/e2.jpeg' %}" alt="" loading="lazy" data-entertainer-slide hidden>
       <span class="tile-text"><strong>Entertainers</strong><small>Actors, Presenters, MCs &amp; Creators.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tile" id="photography" href="#join">
@@ -94,12 +100,16 @@
   </section>
 
   <section class="founder" id="about" aria-labelledby="founder-title">
-    <img src="{% static 'agency/img/founder-portrait.jpg' %}" alt="Semu, founder of Local Faces" width="600" height="1254" loading="lazy">
+    <div class="founder-images">
+      <img class="founder-main-image" src="{% static 'agency/img/founder.jpeg' %}" alt="Semu, founder of Local Faces" loading="lazy">
+      <img class="founder-secondary-image" src="{% static 'agency/img/founder1.jpeg' %}" alt="Semu in a white outfit" loading="lazy">
+    </div>
     <div class="founder-copy">
       <p class="eyebrow">Meet the founder</p>
       <h2 id="founder-title">The journey is <em>personal.</em></h2>
       <p>With over 15 years of experience in the modelling and entertainment industry, Semu brings firsthand experience, international exposure and a passion for developing talent.</p>
       <p>Through Local Faces Talent Agency, her mission is to discover, groom and represent the next generation of talent, creating opportunities for people of all ages, shapes, sizes and backgrounds.</p>
+      <a class="founder-portfolio-link" href="{% url 'founder_portfolio' %}">Explore Semu's portfolio <span aria-hidden="true">→</span></a>
     </div>
   </section>
 

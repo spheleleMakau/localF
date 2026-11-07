@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Models gallery — Local Faces{% endblock %}
+{% block content %}
+<section class="portfolio-page" aria-labelledby="gallery-title">
+  <div class="portfolio-intro">
+    <p class="eyebrow">Local Faces Entertainment</p>
+    <h1 id="gallery-title">Faces with a story.</h1>
+    <p>Explore a selection of modelling and creative work from Local Faces.</p>
+  </div>
+  <div class="portfolio-grid models-gallery">
+    <figure><img src="{% static 'agency/img/model.jpeg' %}" alt="Model holding a skincare product" loading="lazy"><figcaption>01 / Beauty</figcaption></figure>
+    <figure><img src="{% static 'agency/img/model1.jpeg' %}" alt="Model portrait against a white background" loading="lazy"><figcaption>02 / Portrait</figcaption></figure>
+    <figure><img src="{% static 'agency/img/model2.jpeg' %}" alt="Model holding a skincare product" loading="lazy"><figcaption>03 / Beauty</figcaption></figure>
+    <figure><img src="{% static 'agency/img/model3.jpeg' %}" alt="Model in a patterned outfit outdoors" loading="lazy"><figcaption>04 / Editorial</figcaption></figure>
+    <figure><img src="{% static 'agency/img/model4.jpeg' %}" alt="Behind the scenes at a modelling shoot" loading="lazy"><figcaption>05 / Behind the scenes</figcaption></figure>
+    <figure><img src="{% static 'agency/img/model5.jpeg' %}" alt="Model on a fashion runway" loading="lazy"><figcaption>06 / Runway</figcaption></figure>
+  </div>
+  <div class="portfolio-cta"><p>Ready to share your own story?</p><a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a></div>
+</section>
+{% endblock %}
