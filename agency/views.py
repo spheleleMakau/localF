@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from camp.views import apply
 
 
 def home(request):
@@ -6,4 +7,4 @@ def home(request):
 
 
 def join(request):
-    return render(request, "agency/join.html")
+    return apply(request)

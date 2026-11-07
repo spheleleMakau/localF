@@ -114,6 +114,11 @@ LOGIN_REDIRECT_URL = "camp:dashboard"
 LOGOUT_REDIRECT_URL = "camp:apply"
 
 LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get("LOCAL_FACES_WHATSAPP_NUMBER", "27681946795")
+PAYFAST_MERCHANT_ID = os.environ.get("PAYFAST_MERCHANT_ID", "")
+PAYFAST_MERCHANT_KEY = os.environ.get("PAYFAST_MERCHANT_KEY", "")
+PAYFAST_PASSPHRASE = os.environ.get("PAYFAST_PASSPHRASE", "")
+PAYFAST_SITE_URL = os.environ.get("PAYFAST_SITE_URL", "")
+PAYFAST_SANDBOX = os.environ.get("PAYFAST_SANDBOX", "True").lower() == "true"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -12,6 +12,10 @@ def application_photo_path(instance, filename):
 
 
 class Application(models.Model):
+    class Kind(models.TextChoices):
+        TRAINING = "training", "Training"
+        MODEL = "model", "Model"
+
     class AgeCategory(models.TextChoices):
         KIDS = "kids", "Kids (5–12)"
         TEENS = "teens", "Teens (13–18)"
@@ -57,6 +61,7 @@ class Application(models.Model):
         default=uuid.uuid4, unique=True, editable=False, db_index=True
     )
     submission_key = models.UUIDField(null=True, blank=True, unique=True)
+    kind = models.CharField(max_length=12, choices=Kind.choices, default=Kind.TRAINING)
     full_name = models.CharField(max_length=160)
     email = models.EmailField()
     phone = models.CharField(max_length=32)
@@ -67,6 +72,11 @@ class Application(models.Model):
         max_length=12, choices=AgeCategory.choices, blank=True
     )
     gender = models.CharField(max_length=8, choices=Gender.choices, blank=True)
+    shoe_size = models.CharField(max_length=30, blank=True)
+    pants_size = models.CharField(max_length=30, blank=True)
+    dress_size = models.CharField(max_length=30, blank=True)
+    skirt_size = models.CharField(max_length=30, blank=True)
+    top_size = models.CharField(max_length=30, blank=True)
     city = models.CharField(max_length=120)
     town = models.CharField(max_length=120, blank=True)
     current_occupation = models.CharField(max_length=120, blank=True)

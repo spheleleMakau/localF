@@ -1,0 +1,25 @@
+{% extends "camp/base.html" %}
+{% load static %}
+{% block title %}Pay for your order — Local Faces{% endblock %}
+{% block camp_content %}
+<section class="shop-page">
+  <p class="eyebrow">PayFast checkout</p><h1>Complete your payment</h1>
+  <p>Total payable through this order: R{{ order.total|floatformat:2 }}</p>
+  {% include "agency/_order_balance.html" %}
+  <p>After payment, send proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>, using your name and surname as the reference.</p>
+  {% if sandbox %}<p role="status"><strong>PayFast test mode:</strong> this checkout does not accept real payments.</p>{% endif %}
+  {% if local_sandbox %}<p>Local test mode cannot receive PayFast payment notifications. Test orders will remain pending.</p>{% endif %}
+  {% if configuration_error %}
+    <p role="alert">PayFast is not configured. Please contact info@localfaces.co.za.</p>
+  {% elif order.status == "paid" %}
+    <p>Payment has been confirmed.</p>
+  {% else %}
+    <p>Payment is pending. Do not pay again if you have already completed payment; contact us if confirmation is delayed.</p>
+    <form method="post" action="{{ payfast_url }}" {% if auto_handoff %}data-payfast-handoff{% endif %}>
+      {% for name, value in fields %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+      <button class="button button-champagne" type="submit">Pay with PayFast</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}{% if auto_handoff %}<script src="{% static 'agency/js/payfast-handoff.js' %}" defer></script>{% endif %}{% endblock %}

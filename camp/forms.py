@@ -250,3 +250,35 @@ class ApplicationForm(forms.ModelForm):
             finally:
                 if photo.image.name:
                     self.saved_photo_paths.append(photo.image.name)
+
+
+class ModelApplicationForm(ApplicationForm):
+    shoe_size = forms.CharField(label="Shoe size", max_length=30)
+    pants_size = forms.CharField(label="Pants size", max_length=30)
+    dress_size = forms.CharField(label="Dress size", max_length=30, required=False)
+    skirt_size = forms.CharField(label="Skirt size", max_length=30, required=False)
+    top_size = forms.CharField(label="Top size", max_length=30)
+
+    class Meta(ApplicationForm.Meta):
+        fields = ApplicationForm.Meta.fields + [
+            "shoe_size", "pants_size", "dress_size", "skirt_size", "top_size"
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("gender") == Application.Gender.FEMALE:
+            for name in ("dress_size", "skirt_size"):
+                if not cleaned_data.get(name):
+                    self.add_error(name, "This field is required.")
+        else:
+            cleaned_data["dress_size"] = ""
+            cleaned_data["skirt_size"] = ""
+        return cleaned_data
+
+    def save(self, commit=True):
+        application = super().save(commit=False)
+        application.kind = Application.Kind.MODEL
+        if commit:
+            application.save()
+            self.save_photos(application)
+        return application

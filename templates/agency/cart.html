@@ -1,0 +1,14 @@
+{% extends "camp/base.html" %}
+{% block title %}Your cart — Local Faces{% endblock %}
+{% block camp_content %}
+<section class="shop-page">
+  <p class="eyebrow">Your selections</p><h1>Your cart</h1>
+  {% include "agency/_cart_items.html" with allow_remove=True %}
+  <a class="shop-link" href="{% url 'training_shop' %}">Add more training</a>
+  {% if items %}
+    {% if sandbox %}<p role="status"><strong>PayFast test mode:</strong> this checkout does not accept real payments.</p>{% endif %}
+    <p>After payment, email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a> using your name and surname as the reference.</p>
+    <form method="post" action="{% url 'training_checkout' %}">{% csrf_token %}<button class="button button-champagne" type="submit">Checkout with PayFast</button></form>
+  {% endif %}
+</section>
+{% endblock %}

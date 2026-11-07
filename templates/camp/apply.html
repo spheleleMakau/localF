@@ -1,77 +1,11 @@
 {% extends "camp/base.html" %}
-{% load static %}
-{% block title %}Apply — Local Faces Agency Summer Camp{% endblock %}
+{% block title %}Training — Local Faces{% endblock %}
 {% block camp_content %}
-<section class="form-page" style="--campaign-image: url('{% static 'agency/img/academy-main.jpg' %}')">
-  <p id="kids-application-notice" class="kids-application-notice" role="status" hidden>Applications for the Kids category are open for 2027.</p>
-  <div class="form-heading">
-    <div class="section-label"><span>LOCAL FACES AGENCY</span> 6-WEEK SUMMER CAMP</div>
-    <h1>Kindly complete<br>the <em>fields below.</em></h1>
-    <p>Share a few details and photographs in one go. Fields marked with <span class="required-mark">*</span> are required.</p>
-    {% include "agency/_training_details.html" %}
-  </div>
-  <div class="form-layout">
-    <aside class="form-aside" aria-label="Summer camp campaign">
-      <div class="form-campaign-art">
-        <img src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Local Faces model">
-        <span>LET'S GET<br>STARTED!</span>
-      </div>
-      <div class="form-campaign-secondary">
-        <img src="{% static 'agency/img/academy-main.jpg' %}" alt="Local Faces model seated in white">
-      </div>
-    </aside>
-    <form class="application-form" id="application-form" method="post" enctype="multipart/form-data" data-application-form>
-      {% csrf_token %}
-      {{ form.submission_key }}
-      {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-      <div class="form-step-heading">
-        <span>SUMMER CAMP APPLICATION</span>
-        <h2>Your details</h2>
-        <p>Complete the details below and submit your application.</p>
-      </div>
-      <div class="form-fields-grid">
-        {% for field in form %}
-          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "age" or field.name == "age_category" or field.name == "gender" or field.name == "city" or field.name == "town" or field.name == "current_occupation" or field.name == "preferred_days" or field.name == "available_full_five_weeks" or field.name == "has_modelling_experience" or field.name == "social_handle" or field.name == "tiktok_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
-            <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.name == 'previous_experience' %}modelling-experience-details{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %}>
-              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
-              {{ field }}
-              {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
-              {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-      <fieldset class="photo-uploads">
-        <legend>Applicant photographs <span class="required-mark">*</span></legend>
-        <p class="photo-uploads-intro">Upload two photos: one full-length and one profile photo or selfie. JPG, JPEG or PNG.</p>
-        <div class="photo-uploads-grid">
-          {% for field in form %}
-            {% if field.name == "headshot" or field.name == "full_length_photo" %}
-              <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
-                <div class="upload-box"><span class="upload-icon" aria-hidden="true">↥</span>{{ field }}<span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG</small></div>
-                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
-                <div class="photo-preview" data-photo-preview aria-live="polite"></div>
-                {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </fieldset>
-      <div class="privacy-note"><strong>Privacy:</strong> Your details and photographs are collected for application review and follow-up by Local Faces Agency. Submitting this form does not publish your photographs. Please do not include sensitive information that is not relevant to your application.</div>
-      <div class="consent-fields">
-        {% for field in form %}
-          {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
-            <div class="checkbox-field {% if field.errors %}has-error{% endif %}">
-              {{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
-              {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-      <div class="form-controls form-controls-submit"><span class="required-hint"><span class="required-mark">*</span> Required fields</span><button class="button button-champagne submit-application" type="submit">Submit application <span aria-hidden="true">↗</span></button></div>
-    </form>
-  </div>
+<section class="shop-page">
+  <p class="eyebrow">Learn with Local Faces</p>
+  <h1>Training details</h1>
+  {% include "agency/_training_details.html" %}
+  <p>Choose your 2027 term and city when purchasing. Dates and arrangements will be confirmed with you.</p>
+  <a class="button button-champagne" href="{% url 'training_shop' %}">Purchase training</a>
 </section>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}" defer></script>{% endblock %}

@@ -27,7 +27,9 @@ def build_application_whatsapp_url(application: Application, request):
         reverse("camp:shared_photos", args=[token])
     )
     lines = [
-        "NEW LOCAL FACES SUMMER CAMP APPLICATION",
+        "NEW LOCAL FACES MODEL APPLICATION"
+        if application.kind == Application.Kind.MODEL
+        else "NEW LOCAL FACES SUMMER CAMP APPLICATION",
         "",
         f"Application: {application.application_number}",
         f"Applicant: {application.full_name}",
@@ -66,5 +68,15 @@ def build_application_whatsapp_url(application: Application, request):
         f"PHOTOS: {photos_url}",
         f"FULL APPLICATION: {application_url}",
     ]
+    if application.kind == Application.Kind.MODEL:
+        lines[8:8] = [
+            f"Shoe size: {application.shoe_size}",
+            f"Pants size: {application.pants_size}",
+            *(
+                [f"Dress size: {application.dress_size}", f"Skirt size: {application.skirt_size}"]
+                if application.gender == Application.Gender.FEMALE else []
+            ),
+            f"Top size: {application.top_size}",
+        ]
     message = "\n".join(lines)
     return f"https://wa.me/{_whatsapp_number()}?{urlencode({'text': message})}"

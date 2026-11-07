@@ -39,15 +39,17 @@ class ApplicationPhotoInline(admin.TabularInline):
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = [
         "application_number",
+        "kind",
         "full_name",
         "email",
         "phone",
         "submitted_at",
         "status",
     ]
-    list_filter = ["status", "submitted_at"]
+    list_filter = ["kind", "status", "submitted_at"]
     search_fields = [
         "application_number",
+        "kind",
         "full_name",
         "email",
         "phone",
@@ -78,6 +80,11 @@ class ApplicationAdmin(admin.ModelAdmin):
                     "age",
                     "age_category",
                     "gender",
+                    "shoe_size",
+                    "pants_size",
+                    "dress_size",
+                    "skirt_size",
+                    "top_size",
                     "city",
                     "town",
                     "current_occupation",

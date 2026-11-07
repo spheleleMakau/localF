@@ -1,6 +1,31 @@
 const form = document.querySelector("[data-application-form]");
 
 if (form) {
+  const modelContainer = document.querySelector("[data-model-form]");
+  const categoryInputs = document.querySelectorAll('input[name="category"]');
+  const talentNotice = document.querySelector("[data-talent-notice]");
+  const updateCategory = () => {
+    const selected = document.querySelector('input[name="category"]:checked');
+    if (modelContainer) modelContainer.hidden = selected?.value !== "model";
+    if (talentNotice) talentNotice.hidden = selected?.value !== "talent";
+  };
+  categoryInputs.forEach((input) => input.addEventListener("change", updateCategory));
+  if (modelContainer) updateCategory();
+
+  const genderInput = form.querySelector('select[name="gender"]');
+  const updateSizes = () => {
+    form.querySelectorAll("[data-female-size]").forEach((container) => {
+      const visible = genderInput?.value === "female";
+      container.hidden = !visible;
+      const input = container.querySelector("input");
+      if (input) {
+        input.required = visible;
+        if (!visible) input.value = "";
+      }
+    });
+  };
+  genderInput?.addEventListener("change", updateSizes);
+  updateSizes();
   const photoInputs = [...form.querySelectorAll('input[type="file"]')];
   const ageCategoryInput = form.querySelector('select[name="age_category"]');
   const kidsApplicationNotice = document.querySelector(

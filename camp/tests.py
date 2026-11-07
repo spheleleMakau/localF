@@ -29,13 +29,16 @@ class CampPagesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"ok")
 
-    def test_root_and_apply_path_render_the_single_application_page(self):
+    def test_training_urls_show_details_without_accepting_applications(self):
         for url in (reverse("camp:apply"), reverse("camp:apply_form")):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
-                self.assertContains(response, 'data-application-form')
-                self.assertContains(response, 'name="submission_key"')
+                self.assertContains(response, "Training details")
+                self.assertContains(response, reverse("training_shop"))
+                self.assertNotContains(response, "<form")
+                self.assertNotContains(response, 'name="submission_key"')
+                self.assertEqual(self.client.post(url, {}).status_code, 405)
                 self.assertContains(
                     response,
                     "agency/img/logo-light.png",
@@ -65,8 +68,8 @@ class CampPagesTests(TestCase):
                     expected_category,
                 )
 
-    def test_application_form_shows_six_week_details_and_two_required_photo_slots(self):
-        response = self.client.get(reverse("camp:apply"))
+    def test_model_form_retains_application_fields_and_two_required_photo_slots(self):
+        response = self.client.get(reverse("join"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="age"')
         self.assertNotContains(response, 'name="date_of_birth"')
@@ -83,7 +86,7 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, 'name="areas_of_interest"')
         self.assertNotContains(response, "Preferred time")
         self.assertNotContains(response, 'name="preferred_time"')
-        self.assertContains(response, "6-WEEK SUMMER CAMP")
+        self.assertContains(response, "MODEL APPLICATION")
         self.assertContains(response, "Age category")
         self.assertContains(response, "Kids (5–12)")
         self.assertContains(response, "Teens (13–18)")
@@ -91,21 +94,11 @@ class CampPagesTests(TestCase):
         self.assertContains(response, "Gender")
         self.assertContains(response, "Male")
         self.assertContains(response, "Female")
-        self.assertContains(
-            response,
-            'id="kids-application-notice"',
-        )
         self.assertContains(response, 'name="gender"')
         self.assertTrue(response.context["form"]["gender"].field.required)
         self.assertTrue(response.context["form"]["age"].field.required)
         self.assertTrue(response.context["form"]["city"].field.required)
         self.assertTrue(response.context["form"]["town"].field.required)
-        self.assertContains(response, 'hidden>Applications for the Kids category are open for 2027.')
-        content = response.content.decode()
-        self.assertLess(
-            content.index('id="kids-application-notice"'),
-            content.index('class="form-heading"'),
-        )
         self.assertContains(response, "Available for the full 6 weeks?")
         self.assertContains(response, "Do you have any modelling experience?")
         self.assertContains(response, "Instagram handle")
@@ -183,6 +176,11 @@ class ApplicationSubmissionTests(TestCase):
             "age": "20",
             "age_category": "seniors",
             "gender": "female",
+            "shoe_size": "6",
+            "pants_size": "32",
+            "dress_size": "10",
+            "skirt_size": "10",
+            "top_size": "M",
             "city": "Cape Town",
             "town": "Sea Point",
             "current_occupation": "Student",
@@ -205,9 +203,41 @@ class ApplicationSubmissionTests(TestCase):
         data.update(overrides)
         return data
 
+    def test_model_application_saves_sizes_and_uses_whatsapp_flow(self):
+        response = self.client.post(reverse("join"), self.submission_data(
+            shoe_size="6", pants_size="32", dress_size="10", skirt_size="10", top_size="M",
+        ))
+        self.assertEqual(response.status_code, 302)
+        application = Application.objects.get()
+        self.assertEqual(application.kind, Application.Kind.MODEL)
+        self.assertEqual(application.dress_size, "10")
+        self.assertEqual(application.skirt_size, "10")
+        self.assertEqual(application.photos.count(), 2)
+        message = parse_qs(urlsplit(response["Location"]).query)["text"][0]
+        self.assertIn("MODEL APPLICATION", message)
+        self.assertIn("Shoe size: 6", message)
+        self.assertContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+
+    def test_model_sizes_follow_gender_and_are_required(self):
+        response = self.client.post(reverse("join"), self.submission_data(
+            shoe_size="6", pants_size="32", dress_size="", skirt_size="", top_size="M",
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertFormError(response.context["form"], "skirt_size", "This field is required.")
+        response = self.client.post(reverse("join"), self.submission_data(
+            gender="male", shoe_size="9", pants_size="32", top_size="M",
+            dress_size="10", skirt_size="10",
+        ))
+        self.assertEqual(response.status_code, 302)
+        application = Application.objects.get()
+        self.assertEqual(application.dress_size, "")
+        self.assertEqual(application.skirt_size, "")
+        self.assertNotContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+
     def test_submission_saves_application_and_required_photos(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(),
         )
         application = Application.objects.get()
@@ -250,7 +280,7 @@ class ApplicationSubmissionTests(TestCase):
     def test_submission_accepts_photo_larger_than_previous_limit(self):
         oversized_photo = make_png() + b"x" * (8 * 1024 * 1024 + 1)
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 headshot=SimpleUploadedFile(
                     "large-headshot.png",
@@ -268,7 +298,7 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_success_page_offers_a_prepared_whatsapp_message_after_saving(self):
         self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(about="A long personal statement not sent to WhatsApp."),
         )
         application = Application.objects.get()
@@ -328,7 +358,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertContains(full_application, "Modelling experience")
 
     def test_two_required_photos_are_saved_and_visible_on_private_photo_page(self):
-        self.client.post(reverse("camp:apply"), self.submission_data())
+        self.client.post(reverse("join"), self.submission_data())
         application = Application.objects.get()
         self.assertEqual(application.photos.count(), 2)
         photos_response = self.client.get(
@@ -341,9 +371,9 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_idempotency_key_prevents_duplicate_applications(self):
         data = self.submission_data()
-        first_response = self.client.post(reverse("camp:apply"), data)
+        first_response = self.client.post(reverse("join"), data)
         duplicate_response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(submission_key=data["submission_key"]),
         )
         self.assertEqual(urlsplit(first_response["Location"]).netloc, "wa.me")
@@ -358,13 +388,13 @@ class ApplicationSubmissionTests(TestCase):
     def test_missing_age_or_required_photo_is_rejected(self):
         no_age = self.submission_data()
         no_age.pop("age")
-        response = self.client.post(reverse("camp:apply"), no_age)
+        response = self.client.post(reverse("join"), no_age)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
         no_headshot = self.submission_data()
         no_headshot.pop("headshot")
-        response = self.client.post(reverse("camp:apply"), no_headshot)
+        response = self.client.post(reverse("join"), no_headshot)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
@@ -373,32 +403,32 @@ class ApplicationSubmissionTests(TestCase):
             with self.subTest(field=field):
                 data = self.submission_data()
                 data.pop(field)
-                response = self.client.post(reverse("camp:apply"), data)
+                response = self.client.post(reverse("join"), data)
                 self.assertEqual(response.status_code, 200)
                 self.assertFalse(Application.objects.exists())
 
     def test_availability_and_modelling_experience_are_required(self):
         no_available_days = self.submission_data()
         no_available_days.pop("preferred_days")
-        response = self.client.post(reverse("camp:apply"), no_available_days)
+        response = self.client.post(reverse("join"), no_available_days)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
         no_experience_answer = self.submission_data()
         no_experience_answer.pop("has_modelling_experience")
-        response = self.client.post(reverse("camp:apply"), no_experience_answer)
+        response = self.client.post(reverse("join"), no_experience_answer)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
         no_gender_answer = self.submission_data()
         no_gender_answer.pop("gender")
-        response = self.client.post(reverse("camp:apply"), no_gender_answer)
+        response = self.client.post(reverse("join"), no_gender_answer)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
     def test_no_modelling_experience_discards_optional_experience_details(self):
         self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 has_modelling_experience="no",
                 previous_experience="Should not be stored",
@@ -410,7 +440,7 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_age_category_must_match_typed_age(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(age_category="kids"),
         )
         self.assertEqual(response.status_code, 200)
@@ -419,7 +449,7 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_kids_category_accepts_age_12_and_shows_2027_notice(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 age="12",
                 age_category="kids",
@@ -443,7 +473,7 @@ class ApplicationSubmissionTests(TestCase):
         for age in ("4", "29"):
             with self.subTest(age=age):
                 response = self.client.post(
-                    reverse("camp:apply"),
+                    reverse("join"),
                     self.submission_data(age=age),
                 )
                 self.assertEqual(response.status_code, 200)
@@ -455,7 +485,7 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_under_18_applicant_needs_guardian_details_and_consent(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 age="16",
                 age_category="teens",
@@ -465,10 +495,10 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(Application.objects.exists())
         self.assertContains(response, "parent or guardian")
 
-    @patch("camp.views.ApplicationForm.save", side_effect=OSError("Disk unavailable"))
+    @patch("camp.views.ModelApplicationForm.save", side_effect=OSError("Disk unavailable"))
     def test_storage_failure_shows_error_and_does_not_redirect_to_whatsapp(self, _save):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(),
         )
         self.assertEqual(response.status_code, 200)

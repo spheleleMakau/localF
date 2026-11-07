@@ -8,8 +8,9 @@ from django.db import DatabaseError, IntegrityError, transaction
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_GET
 
-from .forms import ApplicationForm
+from .forms import ModelApplicationForm
 from .models import Application, ApplicationPhoto
 from .sharing import application_share_token, get_shared_application
 from .whatsapp import build_application_whatsapp_url
@@ -17,15 +18,24 @@ from .whatsapp import build_application_whatsapp_url
 logger = logging.getLogger(__name__)
 
 
+@require_GET
+def training_details(request):
+    return render(request, "camp/apply.html")
+
+
 def apply(request):
     if request.method == "POST":
-        form = ApplicationForm(request.POST, request.FILES)
+        form = ModelApplicationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 existing = Application.objects.filter(
                     submission_key=form.cleaned_data["submission_key"]
                 ).first()
                 if existing:
+                    if existing.kind != Application.Kind.MODEL:
+                        form.add_error(None, "This submission has already been used. Please start a new application.")
+                        form.add_error("submission_key", "Reload the page for a new submission.")
+                        return render(request, "agency/join.html", {"form": form, "show_model": True})
                     return redirect(
                         build_application_whatsapp_url(existing, request)
                     )
@@ -38,6 +48,10 @@ def apply(request):
                     ).first()
                     if existing is None:
                         raise
+                    if existing.kind != Application.Kind.MODEL:
+                        form.add_error(None, "This submission has already been used. Please start a new application.")
+                        form.add_error("submission_key", "Reload the page for a new submission.")
+                        return render(request, "agency/join.html", {"form": form, "show_model": True})
                     return redirect(
                         build_application_whatsapp_url(existing, request)
                     )
@@ -59,12 +73,13 @@ def apply(request):
                     build_application_whatsapp_url(application, request)
                 )
     else:
-        form = ApplicationForm(initial={"submission_key": uuid.uuid4()})
+        form = ModelApplicationForm(initial={"submission_key": uuid.uuid4()})
     return render(
         request,
-        "camp/apply.html",
+        "agency/join.html",
         {
             "form": form,
+            "show_model": request.method == "POST",
         },
     )
 

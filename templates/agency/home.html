@@ -51,7 +51,7 @@
     <img class="academy-photo" src="{% static 'agency/img/academy-main.jpg' %}" alt="Model seated in white, looking down" width="440" height="335" loading="lazy">
     <div class="academy-copy">
       <p class="eyebrow">Learn. Practise. Grow.</p>
-      <h2 id="academy-title">LOCAL FACES<br><span>SUMMER MODELLING ACADEMY</span></h2>
+      <h2 id="academy-title">LOCAL FACES ENTERTAINMENT<br><span>MODELLING ACADEMY</span></h2>
       <p class="academy-intro">Industry-focused training to develop, equip and prepare you for real opportunities.</p>
       <ul class="checklist">
         <li>Modelling &amp; Runway</li>
@@ -61,7 +61,8 @@
         <li>Industry Knowledge &amp; Representation</li>
       </ul>
       {% include "agency/_training_details.html" %}
-      <a class="button button-champagne" href="{% url 'camp:apply' %}">Apply for 2027 training <span aria-hidden="true">→</span></a>
+      <a class="button button-champagne" href="{% url 'training_shop' %}">Purchase training <span aria-hidden="true">→</span></a>
+      <a class="shop-link" href="{% url 'academy_opportunity' %}">Start a Local Faces academy in your city →</a>
     </div>
     <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
   </section>
@@ -82,7 +83,10 @@
     </a>
     <div class="merch" id="merchandise">
       <div class="merch-copy">
-        <img class="merch-logo" src="{% static 'agency/img/logo-dark.png' %}" alt="Local Faces" width="605" height="200" loading="lazy">
+        <div class="brand merch-logo" aria-label="Local Faces Entertainment">
+          <span class="brand-monogram"><img src="{% static 'agency/img/logo-dark.png' %}" alt="" width="605" height="200" loading="lazy"></span>
+          <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Entertainment</span></span>
+        </div>
         <h2>MERCHANDISE</h2>
         <p>Official Local Faces apparel. Wear the brand.</p>
         <span class="button button-dark button-disabled" aria-disabled="true">Shop coming soon</span>
@@ -110,6 +114,6 @@
       <a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a>
       <a class="button button-ghost" href="#contact">Contact our team</a>
     </div>
-    <p class="note">More talent pool application details are coming soon.</p>
+    <p class="note">Model applications are open. More talent categories are coming soon.</p>
   </section>
 {% endblock %}
