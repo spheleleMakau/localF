@@ -25,11 +25,3 @@ class AddTrainingForm(forms.Form):
         if data.get("training") == "course":
             data["hours"] = 1
         return data
-
-
-class AcademyOpportunityForm(forms.Form):
-    city = forms.CharField(
-        label="Your proposed city",
-        max_length=120,
-        help_text="Tell us where you would like to start your academy.",
-    )

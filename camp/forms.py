@@ -292,7 +292,15 @@ class ModelApplicationForm(TalentStyleApplicationForm):
 
 
 class TrainingApplicationForm(SizedApplicationForm):
-    pass
+    balance_payment_plan = forms.ChoiceField(
+        label="How would you like to pay the remaining R2,500?",
+        choices=(
+            ("", "Please select"),
+            ("once", "One payment of R2,500"),
+            ("two_months", "Two monthly payments of R1,250"),
+        ),
+        help_text="The R500 registration fee is paid first. Arrange the remaining payments with Local Faces.",
+    )
 
 
 class IndividualTrainingApplicationForm(TalentStyleApplicationForm):

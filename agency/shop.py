@@ -11,10 +11,10 @@ from django.db import DatabaseError, IntegrityError, transaction
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from . import payfast
-from .forms import AcademyOpportunityForm, AddTrainingForm, TRAINING_CITIES
+from .forms import AddTrainingForm, TRAINING_CITIES
 from .models import TrainingOrder
 from camp.forms import IndividualTrainingApplicationForm, TrainingApplicationForm
 from camp.models import Application, ApplicationEmail
@@ -90,9 +90,12 @@ def training_application(request):
                     application = Application.objects.filter(submission_key=pending["submission_key"]).first()
                     if application is None:
                         application = form.save()
+                        training_selection = {key: pending[key] for key in ("training", "term", "city", "hours")}
+                        if pending["training"] == "course":
+                            training_selection["balance_payment_plan"] = form.cleaned_data["balance_payment_plan"]
                         notification = ApplicationEmail.objects.create(
                             application=application,
-                            training_selection={key: pending[key] for key in ("training", "term", "city", "hours")},
+                            training_selection=training_selection,
                         )
                     elif application.kind != Application.Kind.TRAINING:
                         raise IntegrityError("Submission key belongs to a different application.")
@@ -110,6 +113,8 @@ def training_application(request):
                 cart = request.session.get("training_cart", [])
                 item = {key: value for key, value in pending.items() if key != "submission_key"}
                 item["application_number"] = application.application_number
+                if pending["training"] == "course" and notification:
+                    item["balance_payment_plan"] = notification.training_selection.get("balance_payment_plan", "")
                 cart.append(item)
                 request.session["training_cart"] = cart
                 del request.session["pending_training"]
@@ -121,18 +126,9 @@ def training_application(request):
     return render(request, "agency/training_application.html", {"form": form, "selection": pending})
 
 
+@require_GET
 def academy_opportunity(request):
-    form = AcademyOpportunityForm(request.POST if request.method == "POST" else None)
-    if request.method == "POST" and form.is_valid():
-        cart = request.session.get("training_cart", [])
-        if len(cart) >= 100:
-            form.add_error(None, "Your cart can contain at most 100 items.")
-        else:
-            cart.append({"training": "academy", "city": form.cleaned_data["city"]})
-            request.session["training_cart"] = cart
-            messages.success(request, "Academy opportunity added to your cart.")
-            return redirect("training_cart")
-    return render(request, "agency/academy_opportunity.html", {"form": form})
+    return render(request, "agency/academy_opportunity.html")
 
 
 def cart(request):

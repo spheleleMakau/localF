@@ -151,9 +151,9 @@ class HomePageTests(TestCase):
                 self.assertContains(response, 'href="https://wa.me/27681946795"')
                 self.assertContains(response, "2027 registrations now open!")
                 self.assertContains(response, "Join Local Faces Modelling Academy in Johannesburg, Durban or Cape Town, hosted by Semu.")
-                self.assertContains(response, "Limited spaces! First come, first served. Registration closes once classes are full.")
+                self.assertContains(response, "Limited spaces! First come, first serve. Registration closes once all spaces are filled.")
                 self.assertContains(response, "Secure your spot today!")
-                self.assertContains(response, "Training is available for 2027")
+                self.assertNotContains(response, "Training is available for 2027, terms 1 to 4.")
                 self.assertContains(response, "What You’ll Walk Away With", count=1)
                 self.assertContains(response, "Walk away focused, confident and career-ready", count=1)
                 self.assertContains(response, "agency/img/walkaway.jpg", count=1)
@@ -183,7 +183,7 @@ class HomePageTests(TestCase):
                     self.assertIn("(non-refundable)", panel)
                     self.assertIn("Course: R2,500", panel)
                     self.assertIn("Total: R3,000", panel)
-                    self.assertIn("remaining R2,500 course fee is arranged separately", panel)
+                    self.assertIn("remaining R2,500 in one payment or in two monthly payments of R1,250", panel)
                     self.assertIn("R1,500 per hour", panel)
                     self.assertIn('href="mailto:info@localfaces.co.za"', panel)
                     self.assertIn(
@@ -237,16 +237,10 @@ class HomePageTests(TestCase):
         response = self.client.get(reverse("academy_opportunity"))
         self.assertContains(response, "agency/img/model4.jpeg")
         self.assertNotContains(response, "agency/img/academy-main.jpg")
-        self.assertContains(response, "Three payments.")
-        self.assertContains(response, "R5,000.")
-        self.assertContains(response, "R1,666.67")
-        self.assertContains(response, "R1,666.66")
-        self.assertContains(response, "not charged automatically")
-        self.assertContains(response, "Payment alone does not guarantee")
-        self.assertContains(response, "info@localfaces.co.za")
-        self.assertContains(response, "name and surname as the reference")
-        self.assertContains(response, 'action="#start"')
-        self.assertContains(response, 'name="city"')
+        self.assertContains(response, "Contact the academy to enquire")
+        self.assertContains(response, 'href="mailto:info@localfaces.co.za?subject=Academy%20opportunity%20enquiry"')
+        for text in ("investment", "payment", "instalment", "R5,000", "R1,666", 'name="city"'):
+            self.assertNotContains(response, text)
 
 
 @override_settings(
@@ -279,6 +273,7 @@ class TrainingShopTests(TestCase):
             "has_modelling_experience": "no", "shoe_size": "6", "pants_size": "32",
             "dress_size": "10", "skirt_size": "10", "top_size": "M",
             "privacy_consent": "on", "photo_consent": "on",
+            "balance_payment_plan": "once",
             "headshot": SimpleUploadedFile("headshot.png", make_png(), content_type="image/png"),
             "full_length_photo": SimpleUploadedFile("full.png", make_png(), content_type="image/png"),
         }
@@ -296,9 +291,10 @@ class TrainingShopTests(TestCase):
     def create_order(self):
         return TrainingOrder.objects.create(total=Decimal("3500.00"), items=[])
 
-    def test_academy_purchase_and_mixed_cart(self):
-        response = self.client.post(reverse("academy_opportunity"), {"city": "  Pretoria  ", "price": "0.01"})
-        self.assertRedirects(response, reverse("training_cart"))
+    def test_existing_academy_item_in_mixed_cart(self):
+        session = self.client.session
+        session["training_cart"] = [{"training": "academy", "city": "Pretoria"}]
+        session.save()
         self.add_item()
         cart = self.client.get(reverse("training_cart"))
         self.assertEqual(cart.context["total"], Decimal("2166.67"))
@@ -343,10 +339,35 @@ class TrainingShopTests(TestCase):
         self.assertIn("Training: Group course", email.body)
         self.assertIn("Training city: Durban", email.body)
         self.assertIn("Term: 2", email.body)
+        self.assertIn("Course balance payment plan: One payment of R2,500", email.body)
+        self.assertEqual(application.notification_email.training_selection["balance_payment_plan"], "once")
         self.assertIn("Full name: Alex Example", email.body)
         self.assertIn(reverse("admin:camp_application_change", args=[application.pk]), email.body)
         self.assertEqual(email.attachments, [])
         self.assertEqual(application.notification_email.status, "sent")
+
+    def test_group_balance_plan_is_required_and_invalid_values_are_rejected(self):
+        self.client.post(reverse("training_shop"), {"training": "course", "term": "2", "city": "Durban"})
+        page = self.client.get(reverse("training_application"))
+        self.assertContains(page, "One payment of R2,500")
+        self.assertContains(page, "Two monthly payments of R1,250")
+        for value in ("", "invalid"):
+            with self.subTest(value=value):
+                response = self.client.post(reverse("training_application"), self.application_data(balance_payment_plan=value))
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("balance_payment_plan", response.context["form"].errors)
+                self.assertFalse(Application.objects.exists())
+
+    def test_group_two_month_plan_is_recorded_and_displayed(self):
+        self.client.post(reverse("training_shop"), {"training": "course", "term": "2", "city": "Durban"})
+        response = self.client.post(reverse("training_application"), self.application_data(balance_payment_plan="two_months"))
+        self.assertRedirects(response, reverse("training_cart"))
+        application = Application.objects.get()
+        self.assertEqual(application.notification_email.training_selection["balance_payment_plan"], "two_months")
+        self.assertIn("Course balance payment plan: Two monthly payments of R1,250", mail.outbox[0].body)
+        cart = self.client.get(reverse("training_cart"))
+        self.assertContains(cart, "Selected balance plan: two monthly payments of R1,250.")
+        self.assertContains(cart, "Total payable now: R500.00")
 
     @override_settings(RESEND_API_KEY="")
     def test_training_email_failure_preserves_application_and_cart(self):
@@ -473,17 +494,10 @@ class TrainingShopTests(TestCase):
         self.assertEqual(self.client.session.get("training_cart", []), [])
         self.assertFalse(Application.objects.exists())
 
-    def test_academy_rejects_missing_city_and_cart_limit(self):
-        response = self.client.post(reverse("academy_opportunity"), {"city": " "})
-        self.assertEqual(response.status_code, 200)
-        self.assertFormError(response.context["form"], "city", "This field is required.")
-        self.assertContains(response, "This field is required.")
-        session = self.client.session
-        session["training_cart"] = [{"training": "course", "city": "Durban", "term": "1", "hours": 1}] * 100
-        session.save()
+    def test_academy_does_not_accept_new_cart_items(self):
         response = self.client.post(reverse("academy_opportunity"), {"city": "Pretoria"})
-        self.assertContains(response, "at most 100 items")
-        self.assertEqual(len(self.client.session["training_cart"]), 100)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(self.client.session.get("training_cart", []), [])
 
     def test_cart_totals_and_eft_details(self):
         self.assertEqual(self.add_item().status_code, 302)

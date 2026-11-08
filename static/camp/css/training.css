@@ -42,7 +42,6 @@
 .camp-page .business-hero h1 { margin: 0 0 24px; font-size: clamp(46px, 5.5vw, 76px); line-height: 1.04; }
 .camp-page .business-hero h1 em { color: #d7bd98; }
 .camp-page .business-hero-copy > p:not(.eyebrow) { max-width: 480px; margin-bottom: 30px; color: #e2d9ce; font-size: 17px; }
-.camp-page .business-hero-link { display: inline-block; margin: 16px 0 16px 22px; color: #f0dfc5; text-decoration: underline; text-underline-offset: 4px; }
 .camp-page .business-hero-image { position: relative; min-height: 460px; overflow: hidden; }
 .camp-page .business-hero-image::after { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(20,18,16,.8)); content: ""; }
 .camp-page .business-hero-image img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; object-position: center 30%; }
@@ -56,34 +55,21 @@
 .camp-page .business-steps { background: #eee8dd; }
 .camp-page .business-step-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; }
 .camp-page .business-step-grid article { padding: 28px; background: var(--white); border: 1px solid var(--line); }
-.camp-page .business-step-grid span, .camp-page .business-payment-plan span { color: var(--accent-dark); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.camp-page .business-step-grid span { color: var(--accent-dark); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
 .camp-page .business-step-grid h3 { margin: 18px 0 10px; font-size: 25px; line-height: 1.2; }
 .camp-page .business-step-grid p { margin-bottom: 0; color: var(--muted); }
-.camp-page .business-investment { display: grid; grid-template-columns: 1fr 1fr; gap: 10%; background: #dcd0bf; }
-.camp-page .business-investment-intro > p:not(.eyebrow) { max-width: 450px; color: #5e564d; }
-.camp-page .business-payment-plan { padding: 10px 26px; background: var(--white); }
-.camp-page .business-payment-plan > div { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 18px 0; border-bottom: 1px solid var(--line); }
-.camp-page .business-payment-plan strong { font: 500 23px/1.2 var(--display); }
-.camp-page .business-payment-plan small { grid-column: 1 / -1; color: var(--muted); }
-.camp-page .business-payment-plan > p { margin: 16px 0; color: var(--muted); font-size: 12px; }
 .camp-page .business-start { display: grid; grid-template-columns: 1fr .8fr; gap: 10%; align-items: start; }
 .camp-page .business-start-copy > p:not(.eyebrow) { max-width: 500px; color: var(--muted); }
-.camp-page .business-start-copy a, .camp-page .business-cart-link { text-decoration: underline; text-underline-offset: 4px; }
 .camp-page .business-start-copy .business-terms { margin-top: 32px; font-size: 12px; }
 .camp-page .business-form-card { padding: 32px; background: var(--white); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(33,31,28,.06); }
 .camp-page .business-form-card h3 { margin-bottom: 4px; font-size: 26px; }
-.camp-page .business-form-price { font: 500 28px/1.2 var(--display); }
-.camp-page .business-form-price span { color: var(--muted); font: 400 13px/1.4 var(--body); }
-.camp-page .business-form-card .shop-form { margin: 24px 0 0; }
 .camp-page .business-form-card .button { width: 100%; padding: 12px; }
-.camp-page .business-form-card .errorlist { margin: 0; padding-left: 20px; color: #8a3529; font-size: 13px; }
 @media (max-width: 760px) {
-  .camp-page .business-hero, .camp-page .business-overview, .camp-page .business-investment, .camp-page .business-start { grid-template-columns: 1fr; }
+  .camp-page .business-hero, .camp-page .business-overview, .camp-page .business-start { grid-template-columns: 1fr; }
   .camp-page .business-hero-copy { padding: 55px 24px; }
   .camp-page .business-hero-image { min-height: 350px; }
-  .camp-page .business-hero-link { margin-left: 0; margin-right: 20px; }
   .camp-page .business-step-grid { grid-template-columns: 1fr; }
-  .camp-page .business-overview, .camp-page .business-investment, .camp-page .business-start { gap: 24px; }
+  .camp-page .business-overview, .camp-page .business-start { gap: 24px; }
   .camp-page .business-form-card { padding: 24px; }
 }
 .camp-page [hidden] { display: none !important; }

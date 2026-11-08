@@ -6,6 +6,7 @@ from django.core.mail import EmailMessage
 from django.urls import reverse
 from django.utils import timezone
 
+from .forms import TrainingApplicationForm
 from .models import ApplicationEmail
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,9 @@ def send_application_email(notification, request):
         ])
         if selection["training"] == "individual":
             lines.append(f"Hours: {selection['hours']}")
+        elif selection.get("balance_payment_plan"):
+            choices = dict(TrainingApplicationForm.base_fields["balance_payment_plan"].choices)
+            lines.append(f"Course balance payment plan: {choices[selection['balance_payment_plan']]}")
     for label, value in fields:
         if value is True:
             value = "Yes"
