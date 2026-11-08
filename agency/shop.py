@@ -17,7 +17,8 @@ from . import payfast
 from .forms import AcademyOpportunityForm, AddTrainingForm, TRAINING_CITIES
 from .models import TrainingOrder
 from camp.forms import IndividualTrainingApplicationForm, TrainingApplicationForm
-from camp.models import Application
+from camp.models import Application, ApplicationEmail
+from camp.notifications import send_application_email
 
 logger = logging.getLogger(__name__)
 PRICES = {"course": Decimal("500.00"), "individual": Decimal("1500.00"), "academy": Decimal("1666.67")}
@@ -47,7 +48,10 @@ def cart_items(request):
 
 
 def shop(request):
-    form = AddTrainingForm(request.POST if request.method == "POST" else None)
+    form = AddTrainingForm(
+        request.POST if request.method == "POST" else None,
+        initial={"city": request.GET.get("city", "")},
+    )
     if request.method == "POST" and form.is_valid():
         item = form.cleaned_data
         cart = request.session.get("training_cart", [])
@@ -86,16 +90,14 @@ def training_application(request):
                     application = Application.objects.filter(submission_key=pending["submission_key"]).first()
                     if application is None:
                         application = form.save()
+                        notification = ApplicationEmail.objects.create(
+                            application=application,
+                            training_selection={key: pending[key] for key in ("training", "term", "city", "hours")},
+                        )
                     elif application.kind != Application.Kind.TRAINING:
                         raise IntegrityError("Submission key belongs to a different application.")
-                cart = request.session.get("training_cart", [])
-                item = {key: value for key, value in pending.items() if key != "submission_key"}
-                item["application_number"] = application.application_number
-                cart.append(item)
-                request.session["training_cart"] = cart
-                del request.session["pending_training"]
-                messages.success(request, "Training and applicant details added to your cart.")
-                return redirect("training_cart")
+                    else:
+                        notification = ApplicationEmail.objects.filter(application=application).first()
             except (DatabaseError, OSError):
                 for image_path in form.saved_photo_paths:
                     try:
@@ -103,7 +105,19 @@ def training_application(request):
                     except OSError:
                         logger.exception("Could not remove an incomplete applicant photo.")
                 logger.exception("Could not save a training application.")
-                form.add_error(None, "We couldn't save your application. Please try again.")
+                form.add_error(None, "We couldn't save your application because of a technical problem. Please try again, or contact info@localfaces.co.za if the problem continues.")
+            else:
+                cart = request.session.get("training_cart", [])
+                item = {key: value for key, value in pending.items() if key != "submission_key"}
+                item["application_number"] = application.application_number
+                cart.append(item)
+                request.session["training_cart"] = cart
+                del request.session["pending_training"]
+                messages.success(request, "Training and applicant details added to your cart.")
+                if notification and notification.status != ApplicationEmail.Status.SENT:
+                    if not send_application_email(notification, request):
+                        messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
+                return redirect("training_cart")
     return render(request, "agency/training_application.html", {"form": form, "selection": pending})
 
 
@@ -123,7 +137,20 @@ def academy_opportunity(request):
 
 def cart(request):
     items = cart_items(request)
-    return render(request, "agency/cart.html", {"items": items, "sandbox": settings.PAYFAST_SANDBOX, "total": sum((item["subtotal"] for item in items), Decimal("0.00"))})
+    application_numbers = [
+        item.get("application_number") for item in items if item["training"] in ("course", "individual")
+    ]
+    valid_applications = set(Application.objects.filter(
+        kind=Application.Kind.TRAINING, application_number__in=application_numbers,
+    ).values_list("application_number", flat=True))
+    needs_application = any(number not in valid_applications for number in application_numbers)
+    response = render(request, "agency/cart.html", {
+        "items": items,
+        "total": sum((item["subtotal"] for item in items), Decimal("0.00")),
+        "needs_application": needs_application,
+    })
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 @require_POST
@@ -143,53 +170,19 @@ def configured():
 
 @require_POST
 def checkout(request):
-    items = cart_items(request)
-    if not items:
-        messages.error(request, "Your cart is empty. Add an item before checking out.")
-        return redirect("training_cart")
-    application_numbers = [
-        item.get("application_number") for item in items if item["training"] in ("course", "individual")
-    ]
-    valid_applications = set(Application.objects.filter(
-        kind=Application.Kind.TRAINING, application_number__in=application_numbers,
-    ).values_list("application_number", flat=True))
-    if any(number not in valid_applications for number in application_numbers):
-        messages.error(request, "A training item in your cart needs an application. Remove it and add it again to complete the form.")
-        return redirect("training_cart")
-    if not configured():
-        messages.error(request, "PayFast is not configured yet. Please contact info@localfaces.co.za.")
-        return redirect("training_cart")
-    snapshot = [{**item, "price": str(item["price"]), "subtotal": str(item["subtotal"])} for item in items]
-    order = TrainingOrder.objects.create(
-        items=snapshot,
-        total=sum((item["subtotal"] for item in items), Decimal("0.00")),
-    )
-    request.session["training_cart"] = []
-    request.session["payment_handoff"] = str(order.token)
-    return redirect("training_payment", token=order.token)
+    messages.info(request, "Payment instructions are now shown in your cart.")
+    return redirect("training_cart")
 
 
 def payment(request, token):
     order = get_object_or_404(TrainingOrder, token=token)
-    context = {"order": order, "sandbox": settings.PAYFAST_SANDBOX, "local_sandbox": payfast.local_sandbox()}
-    if not configured():
-        context["configuration_error"] = True
-        response = render(request, "agency/payment.html", context, status=503)
-    else:
-        context.update({"fields": payfast.payment_fields(order), "payfast_url": payfast.base_url() + "/eng/process"})
-        if request.session.get("payment_handoff") == str(order.token):
-            del request.session["payment_handoff"]
-            context["auto_handoff"] = order.status == TrainingOrder.Status.PENDING
-        response = render(request, "agency/payment.html", context)
+    response = render(request, "agency/payment.html", {"order": order})
     response["Cache-Control"] = "private, no-store"
     return response
 
 
 def payment_return(request, token, cancelled=False):
-    order = get_object_or_404(TrainingOrder, token=token)
-    response = render(request, "agency/payment_return.html", {"order": order, "cancelled": cancelled, "local_sandbox": payfast.local_sandbox()})
-    response["Cache-Control"] = "private, no-store"
-    return response
+    return payment(request, token)
 
 
 @csrf_exempt

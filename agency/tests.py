@@ -3,8 +3,10 @@ from decimal import Decimal
 from unittest.mock import patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.parse import quote
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -140,8 +142,8 @@ class HomePageTests(TestCase):
         for url in (reverse("home"), reverse("camp:apply"), reverse("camp:apply_form"), reverse("training_shop")):
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertContains(response, "December intake fully booked!")
-                self.assertContains(response, "Registrations for 2026 are officially closed.")
+                self.assertContains(response, "December intake fully booked!", count=3)
+                self.assertContains(response, "Registrations for 2026 are officially closed.", count=3)
                 self.assertContains(response, "December 2026 Academy Fashion Show &amp; Graduation")
                 self.assertContains(response, "R50 per person")
                 self.assertContains(response, "Shared upon enquiry")
@@ -164,10 +166,36 @@ class HomePageTests(TestCase):
                 self.assertContains(response, "non-refundable")
                 self.assertContains(response, "Course: R2,500")
 
+    def test_city_details_and_purchase_links_on_training_pages(self):
+        for url in (reverse("home"), reverse("camp:apply"), reverse("camp:apply_form"), reverse("training_shop")):
+            response = self.client.get(url)
+            html = response.content.decode()
+            self.assertContains(response, "click a city below to view fees and book training.")
+            self.assertContains(response, "View fees and booking", count=3)
+            self.assertContains(response, '<details class="training-city">', count=3)
+            for city in ("Durban", "Johannesburg", "Cape Town"):
+                with self.subTest(url=url, city=city):
+                    start = html.index(f'<summary><strong>{city}</strong>')
+                    panel = html[start:html.index("</details>", start)]
+                    self.assertIn("December intake fully booked!", panel)
+                    self.assertIn("Registrations for 2026 are officially closed. We look forward to welcoming new talent in 2027!", panel)
+                    self.assertIn("Registration: R500", panel)
+                    self.assertIn("(non-refundable)", panel)
+                    self.assertIn("Course: R2,500", panel)
+                    self.assertIn("Total: R3,000", panel)
+                    self.assertIn("remaining R2,500 course fee is arranged separately", panel)
+                    self.assertIn("R1,500 per hour", panel)
+                    self.assertIn('href="mailto:info@localfaces.co.za"', panel)
+                    self.assertIn(
+                        f'href="{reverse("training_shop")}?city={quote(city)}#training-selection"',
+                        panel,
+                    )
+
     def test_training_links_go_to_details_and_shop(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, '<a class="service" href="#training-fees">')
-        self.assertContains(response, '<p class="training-fees" id="training-fees"><strong>Registration: R500</strong>')
+        self.assertContains(response, '<a class="service" href="#training-registration">')
+        self.assertContains(response, '<div class="training-registration" id="training-registration">')
+        self.assertContains(response, '<p class="training-fees"><strong>Registration: R500</strong>', count=3)
         self.assertContains(response, '<div class="academy-details" id="training-information">')
         self.assertContains(response, f'href="{reverse("training_shop")}"')
         self.assertContains(
@@ -227,6 +255,9 @@ class HomePageTests(TestCase):
     PAYFAST_PASSPHRASE="test passphrase",
     PAYFAST_SITE_URL="https://example.com",
     PAYFAST_SANDBOX=True,
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    RESEND_API_KEY="test-key",
+    DEFAULT_FROM_EMAIL="sender@example.com",
 )
 class TrainingShopTests(TestCase):
     def setUp(self):
@@ -263,15 +294,9 @@ class TrainingShopTests(TestCase):
         return response
 
     def create_order(self):
-        self.add_item()
-        self.add_item(training="individual", term="4", city="Johannesburg", hours="2")
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        self.assertEqual(response.status_code, 302)
-        return TrainingOrder.objects.get()
+        return TrainingOrder.objects.create(total=Decimal("3500.00"), items=[])
 
-    def test_academy_purchase_and_mixed_cart_snapshot(self):
+    def test_academy_purchase_and_mixed_cart(self):
         response = self.client.post(reverse("academy_opportunity"), {"city": "  Pretoria  ", "price": "0.01"})
         self.assertRedirects(response, reverse("training_cart"))
         self.add_item()
@@ -280,20 +305,10 @@ class TrainingShopTests(TestCase):
         self.assertContains(cart, "Proposed city: Pretoria")
         self.assertContains(cart, "R1,666.67 in month two and R1,666.66 in month three")
         self.assertNotContains(cart, "Term  · Pretoria")
-        response = self.client.post(reverse("training_checkout"))
-        order = TrainingOrder.objects.get()
-        self.assertEqual(order.total, Decimal("2166.67"))
-        self.assertEqual(order.items[0]["training"], "academy")
-        self.assertEqual(order.items[0]["city"], "Pretoria")
-        self.assertEqual(order.items[0]["subtotal"], "1666.67")
-        self.assertEqual(order.items[0]["balance_due"], "3333.33")
-        self.assertEqual(order.items[0]["remaining_installments"], ["1666.67", "1666.66"])
-        self.assertEqual(order.items[1]["application_number"], Application.objects.get().application_number)
-        payment = self.client.get(response["Location"])
-        self.assertContains(payment, 'name="amount" value="2166.67"')
-        self.assertContains(payment, "month two")
-        self.assertContains(payment, "month three")
-        self.assertContains(self.client.get(reverse("training_payment_return", args=[order.token])), "month three")
+        self.assertEqual(cart.context["items"][0]["remaining_installments"], ["1666.67", "1666.66"])
+        self.assertEqual(cart.context["items"][1]["application_number"], Application.objects.get().application_number)
+        self.assertContains(cart, "1330686349")
+        self.assertFalse(TrainingOrder.objects.exists())
 
     def test_group_application_is_required_and_records_sizes_and_photos(self):
         response = self.client.post(reverse("training_shop"), {
@@ -310,15 +325,50 @@ class TrainingShopTests(TestCase):
         response = self.client.post(reverse("training_application"), data)
         self.assertFormError(response.context["form"], "headshot", "This field is required.")
         self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertContains(response, 'href="#error-headshot"')
+        self.assertContains(response, 'href="#error-dress_size"')
+        self.assertContains(response, "For security, photographs are not retained")
         self.assertFalse(Application.objects.exists())
         response = self.client.post(reverse("training_application"), self.application_data())
-        self.assertRedirects(response, reverse("training_cart"))
+        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
         application = Application.objects.get()
         self.assertEqual(application.kind, Application.Kind.TRAINING)
         self.assertEqual((application.shoe_size, application.dress_size, application.top_size), ("6", "10", "M"))
         self.assertEqual(application.photos.count(), 2)
         self.assertContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
         self.assertEqual(self.client.session["training_cart"][0]["application_number"], application.application_number)
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ["info@localfaces.com"])
+        self.assertIn("Training: Group course", email.body)
+        self.assertIn("Training city: Durban", email.body)
+        self.assertIn("Term: 2", email.body)
+        self.assertIn("Full name: Alex Example", email.body)
+        self.assertIn(reverse("admin:camp_application_change", args=[application.pk]), email.body)
+        self.assertEqual(email.attachments, [])
+        self.assertEqual(application.notification_email.status, "sent")
+
+    @override_settings(RESEND_API_KEY="")
+    def test_training_email_failure_preserves_application_and_cart(self):
+        response = self.add_item()
+        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
+        application = Application.objects.get()
+        self.assertEqual(application.notification_email.status, "failed")
+        self.assertEqual(application.photos.count(), 2)
+        cart = self.client.get(reverse("training_cart"))
+        self.assertContains(cart, "Email delivery is temporarily unavailable")
+        self.assertContains(cart, application.application_number)
+        self.assertEqual(len(cart.context["items"]), 1)
+
+    @override_settings(EMAIL_BACKEND="camp.email_backend.ResendEmailBackend")
+    @patch("camp.email_backend.urlopen", side_effect=OSError("service unavailable"))
+    def test_resend_failure_keeps_training_application_for_retry(self, _urlopen):
+        response = self.add_item()
+        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
+        application = Application.objects.get()
+        self.assertEqual(application.notification_email.status, "failed")
+        self.assertEqual(application.photos.count(), 2)
+        self.assertContains(self.client.get(reverse("training_cart")), "Email delivery is temporarily unavailable")
 
     def test_group_application_prefills_city_and_preserves_edited_city(self):
         for city in ("Durban", "Johannesburg", "Cape Town"):
@@ -343,8 +393,9 @@ class TrainingShopTests(TestCase):
         session = self.client.session
         session["training_cart"] = [{"training": "course", "city": "Durban", "term": "1", "hours": 1}]
         session.save()
-        response = self.client.post(reverse("training_checkout"), follow=True)
+        response = self.client.get(reverse("training_cart"))
         self.assertContains(response, "needs an application")
+        self.assertNotContains(response, "1330686349")
         self.assertFalse(TrainingOrder.objects.exists())
 
     def test_one_on_one_requires_talent_style_form_before_checkout(self):
@@ -383,17 +434,20 @@ class TrainingShopTests(TestCase):
         cart = self.client.get(reverse("training_cart"))
         self.assertContains(cart, application.application_number)
         self.assertEqual(cart.context["total"], Decimal("3000.00"))
-        self.client.post(reverse("training_checkout"))
-        order = TrainingOrder.objects.get()
-        self.assertEqual(order.items[0]["application_number"], application.application_number)
-        self.assertEqual(order.total, Decimal("3000.00"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Training: One-on-one", mail.outbox[0].body)
+        self.assertIn("Hours: 2", mail.outbox[0].body)
+        self.assertIn("Training city: Johannesburg", mail.outbox[0].body)
+        self.assertContains(cart, "1330686349")
+        self.assertFalse(TrainingOrder.objects.exists())
 
     def test_legacy_one_on_one_item_cannot_bypass_application(self):
         session = self.client.session
         session["training_cart"] = [{"training": "individual", "city": "Durban", "term": "1", "hours": 1}]
         session.save()
-        response = self.client.post(reverse("training_checkout"), follow=True)
+        response = self.client.get(reverse("training_cart"))
         self.assertContains(response, "needs an application")
+        self.assertNotContains(response, "1330686349")
         self.assertFalse(TrainingOrder.objects.exists())
 
     def test_group_application_male_and_selection_cannot_be_bypassed(self):
@@ -406,15 +460,16 @@ class TrainingShopTests(TestCase):
         applicant = Application.objects.get()
         self.assertEqual((applicant.dress_size, applicant.skirt_size), ("", ""))
         applicant.delete()
-        response = self.client.post(reverse("training_checkout"), follow=True)
+        response = self.client.get(reverse("training_cart"))
         self.assertContains(response, "needs an application")
+        self.assertNotContains(response, "1330686349")
         self.assertFalse(TrainingOrder.objects.exists())
 
     @patch("agency.shop.TrainingApplicationForm.save", side_effect=OSError("Disk unavailable"))
     def test_group_application_storage_failure_does_not_add_to_cart(self, _save):
         self.client.post(reverse("training_shop"), {"training": "course", "term": "1", "city": "Durban"})
         response = self.client.post(reverse("training_application"), self.application_data())
-        self.assertContains(response, "couldn&#x27;t save your application")
+        self.assertContains(response, "because of a technical problem")
         self.assertEqual(self.client.session.get("training_cart", []), [])
         self.assertFalse(Application.objects.exists())
 
@@ -430,7 +485,7 @@ class TrainingShopTests(TestCase):
         self.assertContains(response, "at most 100 items")
         self.assertEqual(len(self.client.session["training_cart"]), 100)
 
-    def test_cart_totals_and_order_handoff(self):
+    def test_cart_totals_and_eft_details(self):
         self.assertEqual(self.add_item().status_code, 302)
         self.assertEqual(self.add_item(training="individual", term="4", city="Johannesburg", hours="2").status_code, 302)
         response = self.client.get(reverse("training_cart"))
@@ -438,27 +493,16 @@ class TrainingShopTests(TestCase):
         self.assertContains(response, "Term 4")
         self.assertContains(response, "remaining R2500.00")
         self.assertContains(response, "proof of payment")
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com",
-            "total": "0.01",
-        })
-        order = TrainingOrder.objects.get()
-        self.assertRedirects(response, reverse("training_payment", args=[order.token]), fetch_redirect_response=False)
-        self.assertEqual(order.total, Decimal("3500.00"))
-        self.assertEqual(order.items[0]["subtotal"], "500.00")
-        self.assertEqual(order.items[0]["balance_due"], "2500.00")
-        self.assertEqual(order.items[0]["city"], "Durban")
-        self.assertEqual(order.items[1]["city"], "Johannesburg")
-        response = self.client.get(response["Location"])
-        self.assertContains(response, "sandbox.payfast.co.za/eng/process")
-        self.assertContains(response, 'name="amount" value="3500.00"')
-        self.assertContains(response, "data-payfast-handoff")
-        self.assertNotContains(response, 'name="name_first"')
-        self.assertNotContains(response, 'name="email_address"')
-        self.assertContains(response, "proof of payment")
-        self.assertContains(response, "remaining R2500.00")
-        self.assertContains(self.client.get(reverse("training_payment_return", args=[order.token])), "remaining R2500.00")
-        self.assertEqual(self.client.get(reverse("training_cart")).context["items"], [])
+        for value in ("Nedbank", "localfaces Entertainment", "1330686349", "applicant's name", "info@localfaces.co.za", "No order is created"):
+            self.assertContains(response, value)
+        self.assertNotContains(response, "For an academy opportunity without an applicant")
+        self.assertNotContains(response, "training type, term and city for each booking")
+        self.assertNotContains(response, "For an academy opportunity, include")
+        self.assertContains(response, "do not pay again")
+        self.assertNotContains(response, "PayFast")
+        self.assertNotContains(response, reverse("training_checkout"))
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertFalse(TrainingOrder.objects.exists())
 
     def test_invalid_selection_and_remove(self):
         self.assertEqual(self.add_item(city="Pretoria").status_code, 200)
@@ -481,7 +525,6 @@ class TrainingShopTests(TestCase):
         self.assertContains(response, 'href="#training-information"')
         self.assertContains(response, 'id="training-information"')
         self.assertContains(response, 'data-training-details="course"')
-        self.assertContains(response, 'data-training-details="individual"')
         self.assertContains(response, 'data-training-shop')
         self.assertContains(response, 'Group course - R500 non-refundable registration')
         self.assertContains(response, 'Group course: R500 non-refundable registration.')
@@ -494,6 +537,19 @@ class TrainingShopTests(TestCase):
         cart = self.client.get(reverse("training_cart"))
         self.assertEqual(cart.context["total"], Decimal("1500.00"))
         self.assertEqual([item["city"] for item in cart.context["items"]], ["Durban", "Johannesburg", "Cape Town"])
+
+    def test_city_purchase_links_preselect_city_without_changing_posted_selection(self):
+        for city in ("Durban", "Johannesburg", "Cape Town"):
+            with self.subTest(city=city):
+                response = self.client.get(reverse("training_shop"), {"city": city})
+                self.assertEqual(response.context["form"]["city"].value(), city)
+                self.assertContains(response, f'<option value="{city}" selected>')
+        response = self.client.post(
+            reverse("training_shop") + "?city=Durban",
+            {"training": "course", "term": "2", "city": "Cape Town"},
+        )
+        self.assertRedirects(response, reverse("training_application"))
+        self.assertEqual(self.client.session["pending_training"]["city"], "Cape Town")
 
     def test_outdated_other_city_selection_requires_reselection(self):
         session = self.client.session
@@ -511,49 +567,29 @@ class TrainingShopTests(TestCase):
         cart = self.client.get(reverse("training_cart"))
         self.assertEqual([item["city"] for item in cart.context["items"]], ["Durban", "Johannesburg", "Cape Town"])
 
-    def test_registration_only_order_is_r500_and_discloses_balance(self):
+    def test_registration_fee_is_r500_and_discloses_balance(self):
         self.add_item(hours="")
         checkout = self.client.get(reverse("training_cart"))
         self.assertContains(checkout, "Total payable now: R500.00")
         self.assertContains(checkout, "remaining R2500.00")
         self.assertContains(checkout, "info@localfaces.co.za")
-        self.assertContains(checkout, "name and surname")
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        order = TrainingOrder.objects.get()
-        self.assertEqual(order.total, Decimal("500.00"))
-        payment = self.client.get(response["Location"])
-        self.assertContains(payment, 'name="amount" value="500.00"')
-        self.assertContains(payment, "remaining R2500.00")
+        self.assertContains(checkout, "applicant's name")
+        self.assertContains(checkout, "1330686349")
+        self.assertFalse(TrainingOrder.objects.exists())
 
-    def test_checkout_needs_no_customer_details_and_handoff_only_runs_once(self):
+    def test_old_checkout_redirects_to_cart_without_creating_order(self):
         self.add_item()
         response = self.client.post(reverse("training_checkout"))
-        order = TrainingOrder.objects.get()
-        self.assertEqual(order.first_name, "")
-        self.assertEqual(order.last_name, "")
-        self.assertEqual(order.email, "")
-        payment = self.client.get(response["Location"])
-        self.assertContains(payment, "data-payfast-handoff")
-        self.assertContains(payment, "Pay with PayFast")
-        self.assertNotContains(self.client.get(response["Location"]), "data-payfast-handoff")
-        returned = self.client.get(reverse("training_payment_return", args=[order.token]))
-        self.assertContains(returned, "proof of payment")
-        self.assertContains(returned, "info@localfaces.co.za")
-        self.assertContains(returned, "name and surname")
-        self.assertContains(returned, str(order.token))
-        order.refresh_from_db()
-        self.assertEqual(order.status, TrainingOrder.Status.PENDING)
-        cancelled = self.client.get(reverse("training_payment_cancel", args=[order.token]))
-        self.assertNotContains(cancelled, "proof of payment")
-        self.assertContains(cancelled, "Return to payment")
+        self.assertRedirects(response, reverse("training_cart"))
+        self.assertEqual(len(self.client.session["training_cart"]), 1)
+        self.assertFalse(TrainingOrder.objects.exists())
 
     def test_checkout_requires_post_and_nonempty_cart(self):
         self.assertEqual(self.client.get(reverse("training_checkout")).status_code, 405)
         response = self.client.post(reverse("training_checkout"))
         self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
         self.assertFalse(TrainingOrder.objects.exists())
+        self.assertNotContains(self.client.get(reverse("training_cart")), "1330686349")
 
     def test_existing_full_price_order_keeps_original_amount(self):
         order = TrainingOrder.objects.create(
@@ -562,7 +598,7 @@ class TrainingShopTests(TestCase):
             items=[{"training": "course", "term": "1", "city": "Durban", "subtotal": "3000.00"}],
         )
         response = self.client.get(reverse("training_payment", args=[order.token]))
-        self.assertContains(response, 'name="amount" value="3000.00"')
+        self.assertContains(response, "R3000.00")
         self.assertNotContains(response, "remaining R2500.00")
 
     def test_empty_submission_shows_errors(self):
@@ -570,54 +606,17 @@ class TrainingShopTests(TestCase):
         self.assertTrue(response.context["form"].errors)
 
     @override_settings(PAYFAST_MERCHANT_ID="")
-    def test_unconfigured_checkout_keeps_cart(self):
+    def test_eft_cart_does_not_require_payfast_configuration(self):
         self.add_item()
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
-        self.assertContains(self.client.get(reverse("training_cart")), "PayFast is not configured")
-        self.assertEqual(TrainingOrder.objects.count(), 0)
-        self.assertEqual(len(self.client.get(reverse("training_cart")).context["items"]), 1)
-
-    @override_settings(DEBUG=True, PAYFAST_SITE_URL="http://127.0.0.1:8765")
-    def test_local_sandbox_checkout_shows_payment_and_pending_warning(self):
-        self.add_item()
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        order = TrainingOrder.objects.get()
-        self.assertRedirects(response, reverse("training_payment", args=[order.token]), fetch_redirect_response=False)
-        payment = self.client.get(response["Location"])
-        self.assertContains(payment, "sandbox.payfast.co.za/eng/process")
-        self.assertContains(payment, 'name="amount" value="500.00"')
-        self.assertNotContains(payment, 'name="notify_url"')
-        self.assertContains(payment, "Test orders will remain pending")
-        self.assertContains(payment, "info@localfaces.co.za")
-        returned = self.client.get(reverse("training_payment_return", args=[order.token]))
-        self.assertContains(returned, "Test orders will remain pending")
-        order.refresh_from_db()
-        self.assertEqual(order.status, TrainingOrder.Status.PENDING)
-
-    @override_settings(DEBUG=False, PAYFAST_SITE_URL="http://127.0.0.1:8765")
-    def test_local_url_is_not_allowed_in_production(self):
-        self.add_item()
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
-        self.assertContains(self.client.get(reverse("training_cart")), "PayFast is not configured")
+        self.assertContains(self.client.get(reverse("training_cart")), "1330686349")
         self.assertFalse(TrainingOrder.objects.exists())
 
-    @override_settings(DEBUG=True, PAYFAST_SANDBOX=False, PAYFAST_SITE_URL="http://127.0.0.1:8765")
-    def test_local_url_is_not_allowed_for_live_payments(self):
-        self.add_item()
-        response = self.client.post(reverse("training_checkout"), {
-            "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
-        })
-        self.assertRedirects(response, reverse("training_cart"), fetch_redirect_response=False)
-        self.assertContains(self.client.get(reverse("training_cart")), "PayFast is not configured")
-        self.assertFalse(TrainingOrder.objects.exists())
+    def test_pending_legacy_order_does_not_offer_another_payment(self):
+        order = TrainingOrder.objects.create(total=Decimal("500.00"), items=[])
+        page = self.client.get(reverse("training_payment", args=[order.token]))
+        self.assertContains(page, "contact")
+        self.assertNotContains(page, "1330686349")
+        self.assertNotContains(page, "Pay with PayFast")
 
     def test_return_does_not_confirm_payment(self):
         order = self.create_order()

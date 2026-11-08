@@ -5,7 +5,7 @@
   <div class="photo-uploads-grid">
     {% for field in form %}
       {% if field.name == "headshot" or field.name == "full_length_photo" %}
-        <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
+        <div id="error-{{ field.name }}" class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
           <label for="{{ field.id_for_label }}">{{ field.label }}<span class="required-mark">*</span></label>
           <div class="upload-box {% if field.name == 'headshot' %}upload-box-example{% endif %}">
             {% if field.name == "headshot" %}

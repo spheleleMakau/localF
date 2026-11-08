@@ -13,9 +13,9 @@ if (form) {
   if (modelContainer) updateCategory();
 
   const genderInput = form.querySelector('select[name="gender"]');
-  const updateSizes = () => {
+  const updateSizes = (preserveErrors = false) => {
     form.querySelectorAll("[data-female-size]").forEach((container) => {
-      const visible = genderInput?.value === "female";
+      const visible = genderInput?.value === "female" || (preserveErrors && container.classList.contains("has-error"));
       container.hidden = !visible;
       const input = container.querySelector("input");
       if (input) {
@@ -24,8 +24,8 @@ if (form) {
       }
     });
   };
-  genderInput?.addEventListener("change", updateSizes);
-  updateSizes();
+  genderInput?.addEventListener("change", () => updateSizes());
+  updateSizes(true);
   const photoInputs = [...form.querySelectorAll('input[type="file"]')];
   const ageCategoryInput = form.querySelector('select[name="age_category"]');
   const kidsApplicationNotice = document.querySelector(
@@ -47,18 +47,18 @@ if (form) {
   ageCategoryInput?.addEventListener("change", updateKidsApplicationNotice);
   updateKidsApplicationNotice();
 
-  const updateModellingExperienceDetails = () => {
+  const updateModellingExperienceDetails = (preserveErrors = false) => {
     if (modellingExperienceDetails && modellingExperienceInput) {
       modellingExperienceDetails.hidden =
-        modellingExperienceInput.value !== "yes";
+        modellingExperienceInput.value !== "yes" && !(preserveErrors && modellingExperienceDetails.classList.contains("has-error"));
     }
   };
 
   modellingExperienceInput?.addEventListener(
     "change",
-    updateModellingExperienceDetails,
+    () => updateModellingExperienceDetails(),
   );
-  updateModellingExperienceDetails();
+  updateModellingExperienceDetails(true);
 
   const validatePhotoInputs = () => {
     photoInputs.forEach((input) => {

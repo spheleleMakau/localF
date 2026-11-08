@@ -3,6 +3,7 @@ import mimetypes
 import uuid
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, IntegrityError, transaction
 from django.http import FileResponse, Http404
@@ -11,11 +12,19 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from .forms import ModelApplicationForm
-from .models import Application, ApplicationPhoto
+from .models import Application, ApplicationEmail, ApplicationPhoto
+from .notifications import send_application_email
 from .sharing import application_share_token, get_shared_application
 from .whatsapp import build_application_whatsapp_url
 
 logger = logging.getLogger(__name__)
+
+def model_application_redirect(request, application):
+    notification = ApplicationEmail.objects.filter(application=application).first()
+    if notification and notification.status != ApplicationEmail.Status.SENT:
+        messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
+        return redirect("camp:success", token=application.share_token)
+    return redirect(build_application_whatsapp_url(application, request))
 
 
 @require_GET
@@ -36,12 +45,11 @@ def apply(request):
                         form.add_error(None, "This submission has already been used. Please start a new application.")
                         form.add_error("submission_key", "Reload the page for a new submission.")
                         return render(request, "agency/join.html", {"form": form, "show_model": True})
-                    return redirect(
-                        build_application_whatsapp_url(existing, request)
-                    )
+                    return model_application_redirect(request, existing)
                 try:
                     with transaction.atomic():
                         application = form.save()
+                        notification = ApplicationEmail.objects.create(application=application)
                 except IntegrityError:
                     existing = Application.objects.filter(
                         submission_key=form.cleaned_data["submission_key"]
@@ -52,9 +60,7 @@ def apply(request):
                         form.add_error(None, "This submission has already been used. Please start a new application.")
                         form.add_error("submission_key", "Reload the page for a new submission.")
                         return render(request, "agency/join.html", {"form": form, "show_model": True})
-                    return redirect(
-                        build_application_whatsapp_url(existing, request)
-                    )
+                    return model_application_redirect(request, existing)
             except (DatabaseError, OSError):
                 for image_path in form.saved_photo_paths:
                     try:
@@ -66,9 +72,12 @@ def apply(request):
                 logger.exception("Could not save a Local Faces application.")
                 form.add_error(
                     None,
-                    "We couldn't submit your application. Please try again.",
+                    "We couldn't save your application because of a technical problem. Please try again, or contact info@localfaces.co.za if the problem continues.",
                 )
             else:
+                if not send_application_email(notification, request):
+                    messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
+                    return redirect("camp:success", token=application.share_token)
                 return redirect(
                     build_application_whatsapp_url(application, request)
                 )

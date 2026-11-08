@@ -6,32 +6,40 @@
   <div class="talent-application-inner">
     <p class="eyebrow">{% if selection.training == "course" %}Group training{% else %}One-on-one training{% endif %} · 2027 · Term {{ selection.term }} · {{ selection.city }}</p>
     <h1 id="training-application-title">Training applicant details</h1>
-    {% if selection.training == "course" %}<p>Complete one form per group-course booking before adding it to your cart. The R500 registration fee is paid at checkout; the R2,500 balance is arranged separately.</p>
+    {% if selection.training == "course" %}<p>Complete one form per group-course booking before adding it to your cart. The R500 registration fee is paid by EFT or bank deposit; the R2,500 balance is arranged separately.</p>
     {% else %}<p>Complete one form per one-on-one booking before adding it to your cart. Training with Semu costs R1,500 per hour in your selected city.</p>{% endif %}
     <form class="application-form" method="post" enctype="multipart/form-data" data-application-form>
       {% csrf_token %}
       {{ form.submission_key }}
-      {% if form.non_field_errors or form.submission_key.errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}{{ form.submission_key.errors }}</div>{% endif %}
-      {% if form.errors %}<div class="form-errors" role="alert">Please correct the errors below and select both photographs again.</div>{% endif %}
+      {% include "agency/_application_errors.html" %}
       <div class="form-step-heading"><span>TRAINING APPLICATION</span><h2>Your details</h2><p>Enter the details of the person attending training.</p></div>
       <div class="form-fields-grid">
         {% for field in form %}
           {% if not field.is_hidden and field.name != "headshot" and field.name != "full_length_photo" and field.name != "privacy_consent" and field.name != "photo_consent" and field.name != "guardian_consent" %}
-            <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %} {% if field.name == "dress_size" or field.name == "skirt_size" %}data-female-size{% endif %}>
+            {% if field.name == "preferred_days" %}
+              <fieldset id="error-{{ field.name }}" class="form-field form-field-wide availability-field {% if field.errors %}has-error{% endif %}">
+                <legend>{{ field.label }}<span class="required-mark">*</span></legend>
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field }}
+                {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+              </fieldset>
+            {% else %}
+            <div id="error-{{ field.name }}" class="form-field {% if field.name == 'about' or field.name == 'previous_experience' %}form-field-wide{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %} {% if field.name == "dress_size" or field.name == "skirt_size" %}data-female-size{% endif %}>
               <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'dress_size' or field.name == 'skirt_size' %}<span class="required-mark">*</span>{% endif %}</label>
               {{ field }}
               {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
               {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
             </div>
+            {% endif %}
           {% endif %}
         {% endfor %}
       </div>
       {% include "agency/_photo_uploads.html" %}
-      <div class="privacy-note"><strong>Privacy:</strong> Your details and photographs are collected for application review and follow-up by Local Faces Agency. Submitting this form does not publish your photographs.</div>
+      <div class="privacy-note"><strong>Privacy:</strong> Your details are emailed to Local Faces Agency for application review and follow-up. Your photographs are stored for staff review and are not attached to the email or published by submitting this form.</div>
       <div class="consent-fields">
         {% for field in form %}
           {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
-            <div class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+            <div id="error-{{ field.name }}" class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
           {% endif %}
         {% endfor %}
       </div>
@@ -41,4 +49,4 @@
   </div>
 </section>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}" defer></script>{% endblock %}
+{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}?v=2" defer></script>{% endblock %}

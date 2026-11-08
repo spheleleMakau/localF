@@ -1,7 +1,6 @@
 {% load static %}
 <div class="training-details">
   <div class="training-announcement">
-    <p class="training-status"><strong>December intake fully booked!</strong><br>Registrations for 2026 are officially closed. We look forward to welcoming new talent in 2027!</p>
     <details class="training-invitation">
       <summary>You’re invited: December 2026 Academy Fashion Show &amp; Graduation</summary>
       <div class="training-invitation-content">
@@ -11,7 +10,7 @@
       </div>
     </details>
   </div>
-  <div class="training-registration">
+  <div class="training-registration" id="training-registration">
     <p class="training-status"><strong>2027 registrations now open!</strong></p>
     <p>Join Local Faces Modelling Academy in Johannesburg, Durban or Cape Town, hosted by Semu.</p>
     <p>Limited spaces! First come, first served. Registration closes once classes are full.</p>
@@ -23,7 +22,7 @@
       {% include "agency/_training_outcome.html" %}
     </div>
   {% endif %}
-  <div data-training-details="course">
+  <div>
     <p>Join our 6-week intensive training course.</p>
     {% if show_course_topics != False %}
       <section class="training-curriculum" aria-labelledby="course-topics-title">
@@ -31,16 +30,11 @@
         {% include "agency/_course_topics.html" %}
       </section>
     {% endif %}
-    <ul class="training-locations" aria-label="2027 training locations">
-      <li><strong>Durban</strong><span>Hosted by Semu</span></li>
-      <li><strong>Johannesburg</strong><span>Hosted by Semu</span></li>
-      <li><strong>Cape Town</strong><span>Hosted by Semu</span></li>
-    </ul>
-    <p class="training-fees" id="training-fees"><strong>Registration: R500</strong> (non-refundable)<br><strong>Course: R2,500</strong><br><strong>Total: R3,000</strong></p>
-    <p>Pay the R500 registration fee online first. The remaining R2,500 course fee is arranged separately with Local Faces.</p>
   </div>
-  <div data-training-details="individual">
-    <p>One-on-one training with Semu is available in Johannesburg, Durban and Cape Town at <strong>R1,500 per hour</strong>.</p>
+  <p class="training-locations-prompt"><strong>Choose a city</strong> — click a city below to view fees and book training.</p>
+  <div class="training-locations" role="group" aria-label="2027 training locations">
+    {% include "agency/_training_city.html" with city="Durban" %}
+    {% include "agency/_training_city.html" with city="Johannesburg" %}
+    {% include "agency/_training_city.html" with city="Cape Town" %}
   </div>
-  <p>Enquiries: <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></p>
 </div>

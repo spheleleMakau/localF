@@ -114,6 +114,9 @@ LOGIN_REDIRECT_URL = "camp:dashboard"
 LOGOUT_REDIRECT_URL = "camp:apply"
 
 LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get("LOCAL_FACES_WHATSAPP_NUMBER", "27681946795")
+EMAIL_BACKEND = "camp.email_backend.ResendEmailBackend"
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "info@localfaces.co.za")
 PAYFAST_MERCHANT_ID = os.environ.get("PAYFAST_MERCHANT_ID", "")
 PAYFAST_MERCHANT_KEY = os.environ.get("PAYFAST_MERCHANT_KEY", "")
 PAYFAST_PASSPHRASE = os.environ.get("PAYFAST_PASSPHRASE", "")

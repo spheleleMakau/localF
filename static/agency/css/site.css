@@ -95,7 +95,6 @@ h1, h2, p { margin-top: 0; }
 .training-outcome .academy-outcome { margin: 0; }
 .training-outcome .academy-outcome p { margin: 0; }
 .training-announcement { margin: 0 0 18px; padding: 16px; border-left: 3px solid var(--champagne-deep); background: #f6eee1; }
-.training-announcement .training-status { margin-bottom: 10px; }
 .training-invitation summary { color: #654b2c; font-weight: 700; cursor: pointer; }
 .training-invitation-content { padding-top: 12px; }
 .training-invitation-content p:last-child { margin-bottom: 0; }
@@ -105,11 +104,21 @@ h1, h2, p { margin-top: 0; }
 .training-curriculum .course-topics { gap: 0; margin-bottom: 0; }
 .training-curriculum .course-topics li { padding: 8px 0 8px 20px; border-top: 1px solid #e8dfd3; }
 .training-curriculum .course-topics li::before { top: 1.15em; }
-.training-locations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; padding: 0; list-style: none; }
-.training-locations li { padding: 10px; background: rgba(255,255,255,.6); }
-.training-locations strong, .training-locations span { display: block; }
-.training-locations span { color: #655b4f; font-size: 11px; }
-.training-details .training-fees { margin-bottom: 0; }
+.training-locations { display: grid; gap: 8px; margin: 0 0 14px; }
+.training-details .training-locations-prompt { margin: 0 0 10px; font-size: 14px; }
+.training-city { border: 1px solid #79592b; background: rgba(255,255,255,.6); }
+.training-city summary { position: relative; min-height: 72px; padding: 12px 48px 12px 16px; background: #2f2922; color: #fff; cursor: pointer; list-style: none; transition: background .2s; }
+.training-city summary:hover, .training-city[open] summary { background: #54402a; }
+.training-city summary:focus-visible { outline: 3px solid #79592b; outline-offset: 3px; }
+.training-city summary::-webkit-details-marker { display: none; }
+.training-city summary::after { position: absolute; right: 14px; top: 50%; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid #ead6b8; border-radius: 50%; transform: translateY(-50%); content: "+"; font-size: 20px; line-height: 1; }
+.training-city[open] summary::after { content: "-"; }
+.training-city summary strong, .training-city summary span { display: block; }
+.training-city summary strong { font-size: 16px; }
+.training-city summary span { color: #f0dfc7; font-size: 11px; }
+.training-city summary .training-city-action { margin-top: 4px; color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.training-city-content { padding: 12px; border-top: 1px solid #c9b9a2; }
+.training-city-content a:not(.button) { text-decoration: underline; text-underline-offset: 2px; }
 
 .talent { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px; background: var(--paper); }
 .tile { position: relative; display: block; min-height: 380px; overflow: hidden; background: #222; }
@@ -249,7 +258,6 @@ h1, h2, p { margin-top: 0; }
   .join-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 0; justify-items: center; font-size: 14px; letter-spacing: .16em; }
   .hero-tags { font-size: 10px; letter-spacing: .12em; }
   .hero-tags span:not(:last-child)::after { margin: 0 10px; }
-  .training-locations { grid-template-columns: 1fr; }
   .talent-categories { grid-template-columns: 1fr; }
   .join-steps span::after { display: none; }
   .footer-main { align-items: flex-start; flex-direction: column; }

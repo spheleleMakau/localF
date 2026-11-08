@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 import tempfile
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -7,12 +8,15 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import mail
+from django.core.mail import EmailMessage
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
 from .forms import ApplicationForm
-from .models import Application, ApplicationPhoto
+from .email_backend import ResendEmailBackend
+from .models import Application, ApplicationEmail, ApplicationPhoto
 from .sharing import application_share_token
 from .whatsapp import build_application_whatsapp_url
 
@@ -21,6 +25,34 @@ def make_png():
     output = BytesIO()
     Image.new("RGB", (2, 2), color="teal").save(output, format="PNG")
     return output.getvalue()
+
+
+@override_settings(RESEND_API_KEY="test-key")
+class ResendEmailBackendTests(TestCase):
+    @patch("camp.email_backend.urlopen")
+    def test_sends_application_to_resend_with_idempotency_key(self, urlopen):
+        urlopen.return_value.__enter__.return_value.read.return_value = b'{"id":"email-id"}'
+        message = EmailMessage(
+            "Application", "Application details", "info@localfaces.co.za",
+            ["info@localfaces.com"], headers={"Idempotency-Key": "application/LFA-test"},
+        )
+        self.assertEqual(ResendEmailBackend().send_messages([message]), 1)
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://api.resend.com/emails")
+        self.assertEqual(request.get_header("Authorization"), "Bearer test-key")
+        self.assertEqual(request.get_header("Idempotency-key"), "application/LFA-test")
+        self.assertEqual(json.loads(request.data), {
+            "from": "info@localfaces.co.za", "to": ["info@localfaces.com"],
+            "subject": "Application", "text": "Application details",
+        })
+
+    @patch("camp.email_backend.urlopen")
+    def test_response_without_email_id_is_not_success(self, urlopen):
+        urlopen.return_value.__enter__.return_value.read.return_value = b'{}'
+        with self.assertRaises(ValueError):
+            ResendEmailBackend().send_messages([
+                EmailMessage("Application", "Details", "info@localfaces.co.za", ["info@localfaces.co.za"])
+            ])
 
 
 class CampPagesTests(TestCase):
@@ -148,6 +180,11 @@ class CampPagesTests(TestCase):
         self.assertContains(response, str(application.share_token))
 
 
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    RESEND_API_KEY="test-key",
+    DEFAULT_FROM_EMAIL="sender@example.com",
+)
 class ApplicationSubmissionTests(TestCase):
     def setUp(self):
         self.media_directory = tempfile.TemporaryDirectory()
@@ -210,6 +247,36 @@ class ApplicationSubmissionTests(TestCase):
         self.assertIn("MODEL APPLICATION", message)
         self.assertIn("Shoe size: 6", message)
         self.assertContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ["info@localfaces.com"])
+        self.assertIn("Full name: Jordan Example", email.body)
+        self.assertIn("About: I enjoy creative projects.", email.body)
+        self.assertIn("Shoe size: 6", email.body)
+        self.assertIn(reverse("admin:camp_application_change", args=[application.pk]), email.body)
+        self.assertNotIn(str(application.share_token), email.body)
+        self.assertEqual(email.attachments, [])
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.SENT)
+        self.assertEqual(self.client.get(reverse("admin:camp_application_change", args=[application.pk])).status_code, 302)
+
+    @override_settings(RESEND_API_KEY="")
+    def test_email_failure_keeps_application_and_staff_can_retry(self):
+        response = self.client.post(reverse("join"), self.submission_data())
+        application = Application.objects.get()
+        self.assertRedirects(response, reverse("camp:success", args=[application.share_token]), fetch_redirect_response=False)
+        self.assertContains(self.client.get(response["Location"]), "Email delivery is temporarily unavailable")
+        self.assertEqual(application.photos.count(), 2)
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.FAILED)
+        staff = get_user_model().objects.create_superuser("reviewer", "reviewer@example.com", "password")
+        self.client.force_login(staff)
+        with override_settings(RESEND_API_KEY="test-key"):
+            result = self.client.post(reverse("admin:camp_application_changelist"), {
+                "action": "retry_application_emails", "_selected_action": [application.pk],
+            })
+        self.assertEqual(result.status_code, 302)
+        application.notification_email.refresh_from_db()
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.SENT)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_model_sizes_follow_gender_and_are_required(self):
         response = self.client.post(reverse("join"), self.submission_data(
@@ -218,6 +285,9 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFormError(response.context["form"], "dress_size", "This field is required.")
         self.assertFormError(response.context["form"], "skirt_size", "This field is required.")
+        self.assertContains(response, 'href="#error-dress_size"')
+        self.assertContains(response, "Dress size: This field is required.")
+        self.assertContains(response, "For security, photographs are not retained")
         response = self.client.post(reverse("join"), self.submission_data(
             gender="male", shoe_size="9", pants_size="32", top_size="M",
             dress_size="10", skirt_size="10",
@@ -488,7 +558,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "submit your application. Please try again.",
+            "because of a technical problem",
         )
         self.assertFalse(Application.objects.exists())
 

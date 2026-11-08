@@ -17,12 +17,12 @@
       <form class="application-form" method="post" enctype="multipart/form-data" data-application-form>
         {% csrf_token %}
         {{ form.submission_key }}
-        {% if form.non_field_errors or form.submission_key.errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}{{ form.submission_key.errors }}</div>{% endif %}
+        {% include "agency/_application_errors.html" %}
         <div class="form-step-heading"><span>MODEL APPLICATION</span><h2>Your details</h2><p>Complete the details below and submit your application.</p></div>
         <div class="form-fields-grid">
           {% for field in form %}
             {% if not field.is_hidden and field.name != "headshot" and field.name != "full_length_photo" and field.name != "privacy_consent" and field.name != "photo_consent" and field.name != "guardian_consent" %}
-              <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %} {% if field.name == "dress_size" or field.name == "skirt_size" %}data-female-size{% endif %}>
+              <div id="error-{{ field.name }}" class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %} {% if field.name == "dress_size" or field.name == "skirt_size" %}data-female-size{% endif %}>
                 <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'dress_size' or field.name == 'skirt_size' %}<span class="required-mark">*</span>{% endif %}</label>
                 {{ field }}
                 {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
@@ -32,11 +32,11 @@
           {% endfor %}
         </div>
         {% include "agency/_photo_uploads.html" %}
-        <div class="privacy-note"><strong>Privacy:</strong> Your details and photographs are collected for application review and follow-up by Local Faces Agency. Submitting this form does not publish your photographs. Please do not include sensitive information that is not relevant to your application.</div>
+        <div class="privacy-note"><strong>Privacy:</strong> Your details are emailed to Local Faces Agency for application review and follow-up. Your photographs are stored for staff review and are not attached to the email or published by submitting this form. Please do not include sensitive information that is not relevant to your application.</div>
         <div class="consent-fields">
           {% for field in form %}
             {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
-              <div class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+              <div id="error-{{ field.name }}" class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
             {% endif %}
           {% endfor %}
         </div>
@@ -47,4 +47,4 @@
   </div>
 </section>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}" defer></script>{% endblock %}
+{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}?v=2" defer></script>{% endblock %}

@@ -156,3 +156,15 @@ class ApplicationPhoto(models.Model):
 
     def __str__(self):
         return f"{self.application.application_number} — {self.original_name}"
+
+
+class ApplicationEmail(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    application = models.OneToOneField(Application, related_name="notification_email", on_delete=models.CASCADE)
+    training_selection = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    sent_at = models.DateTimeField(null=True, blank=True)

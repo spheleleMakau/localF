@@ -22,29 +22,6 @@ def signature(pairs, passphrase):
     return hashlib.md5(parameter_string(pairs).encode("utf-8")).hexdigest()
 
 
-def payment_fields(order):
-    origin = settings.PAYFAST_SITE_URL.rstrip("/")
-    fields = [
-        ("merchant_id", settings.PAYFAST_MERCHANT_ID),
-        ("merchant_key", settings.PAYFAST_MERCHANT_KEY),
-        ("return_url", f"{origin}/shop/order/{order.token}/return/"),
-        ("cancel_url", f"{origin}/shop/order/{order.token}/cancel/"),
-    ]
-    if not local_sandbox():
-        fields.append(("notify_url", f"{origin}/shop/payfast/notify/"))
-    fields.extend([
-        ("name_first", order.first_name),
-        ("name_last", order.last_name),
-        ("email_address", order.email),
-        ("m_payment_id", str(order.token)),
-        ("amount", f"{order.total:.2f}"),
-        ("item_name", f"Local Faces order {order.token}"),
-    ])
-    fields = [(key, value.strip()) for key, value in fields if value.strip()]
-    fields.append(("signature", signature(fields, settings.PAYFAST_PASSPHRASE)))
-    return fields
-
-
 def local_sandbox():
     url = urlparse(settings.PAYFAST_SITE_URL)
     return (

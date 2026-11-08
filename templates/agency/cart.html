@@ -5,10 +5,16 @@
   <p class="eyebrow">Your selections</p><h1>Your cart</h1>
   {% include "agency/_cart_items.html" with allow_remove=True %}
   <a class="shop-link" href="{% url 'training_shop' %}">Add more training</a>
-  {% if items %}
-    {% if sandbox %}<p role="status"><strong>PayFast test mode:</strong> this checkout does not accept real payments.</p>{% endif %}
-    <p>After payment, email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a> using your name and surname as the reference.</p>
-    <form method="post" action="{% url 'training_checkout' %}">{% csrf_token %}<button class="button button-champagne" type="submit">Checkout with PayFast</button></form>
+  {% if needs_application %}
+    <p role="alert">A training item in your cart needs an application. Remove it and add it again to complete the form before paying.</p>
+  {% elif items %}
+    <h2>Pay by EFT or bank deposit</h2>
+    <p><strong>Bank:</strong> Nedbank<br>
+      <strong>Account name:</strong> localfaces Entertainment<br>
+      <strong>Account number:</strong> 1330686349</p>
+    <p><strong>Use the applicant's name as the payment reference.</strong></p>
+    <p><strong>After payment, email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>. Include the applicant's name.</strong></p>
+    <p>Local Faces will verify your deposit before confirming payment. No order is created from this cart, and the cart will not clear automatically after payment. If you have already paid, do not pay again; contact us if confirmation is delayed.</p>
   {% endif %}
 </section>
 {% endblock %}
