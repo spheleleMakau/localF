@@ -1,10 +1,33 @@
+{% load static %}
 <div class="training-details">
-  <p class="training-status"><strong>2026 training is full.</strong> Training is available for 2027, terms 1 to 4.</p>
+  <div class="training-announcement">
+    <p class="training-status"><strong>December intake fully booked!</strong><br>Registrations for 2026 are officially closed. We look forward to welcoming new talent in 2027!</p>
+    <details class="training-invitation">
+      <summary>You’re invited: December 2026 Academy Fashion Show &amp; Graduation</summary>
+      <div class="training-invitation-content">
+        <p>Join us to celebrate our rising talent, mingle and network with industry professionals.</p>
+        <p><strong>Tickets:</strong> R50 per person<br><strong>Venue:</strong> Shared upon enquiry</p>
+        <p>For tickets and enquiries, <a href="mailto:info@localfaces.co.za">email info@localfaces.co.za</a> or <a href="https://wa.me/27681946795">WhatsApp Semu on 068 194 6795</a>.</p>
+      </div>
+    </details>
+  </div>
+  <div class="training-registration">
+    <p class="training-status"><strong>2027 registrations now open!</strong></p>
+    <p>Join Local Faces Modelling Academy in Johannesburg, Durban or Cape Town, hosted by Semu.</p>
+    <p>Limited spaces! First come, first served. Registration closes once classes are full.</p>
+    <p><strong>Secure your spot today!</strong> Training is available for 2027, terms 1 to 4.</p>
+  </div>
+  {% if show_training_outcome != False %}
+    <div class="training-outcome">
+      <img src="{% static 'agency/img/walkaway.jpg' %}" alt="Professional model digitals showing a model's poses and looks" width="956" height="1600" loading="lazy">
+      {% include "agency/_training_outcome.html" %}
+    </div>
+  {% endif %}
   <div data-training-details="course">
-    <p>Join our 6-week intensive training course. Places are offered on a first-come, first-served basis.</p>
+    <p>Join our 6-week intensive training course.</p>
     {% if show_course_topics != False %}
       <section class="training-curriculum" aria-labelledby="course-topics-title">
-        <h3 id="course-topics-title">What the course covers</h3>
+        <h3 id="course-topics-title">What the training covers</h3>
         {% include "agency/_course_topics.html" %}
       </section>
     {% endif %}
@@ -13,11 +36,11 @@
       <li><strong>Johannesburg</strong><span>Hosted by Semu</span></li>
       <li><strong>Cape Town</strong><span>Hosted by Semu</span></li>
     </ul>
-    <p class="training-fees"><strong>Registration: R500</strong> (non-refundable)<br><strong>Course: R2,500</strong><br><strong>Total: R3,000</strong></p>
+    <p class="training-fees" id="training-fees"><strong>Registration: R500</strong> (non-refundable)<br><strong>Course: R2,500</strong><br><strong>Total: R3,000</strong></p>
     <p>Pay the R500 registration fee online first. The remaining R2,500 course fee is arranged separately with Local Faces.</p>
   </div>
   <div data-training-details="individual">
-    <p>One-on-one training with Semu is available in all cities at <strong>R1,500 per hour</strong>.</p>
+    <p>One-on-one training with Semu is available in Johannesburg, Durban and Cape Town at <strong>R1,500 per hour</strong>.</p>
   </div>
   <p>Enquiries: <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></p>
 </div>

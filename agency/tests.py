@@ -35,8 +35,15 @@ class HomePageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "REAL PEOPLE.")
-        self.assertContains(response, "LOCAL FACES ENTERTAINMENT")
+        self.assertContains(response, "LOCAL FACES")
         self.assertContains(response, "MODELLING ACADEMY")
+        self.assertContains(response, "Turn Your Look Into an Opportunity. Turn Your Name Into a Brand.")
+        self.assertContains(response, "More Than Modelling. We’re Building Brands.")
+        self.assertContains(response, "Your Look. Your Brand. Your Future.")
+        self.assertContains(response, "What You’ll Walk Away With")
+        self.assertContains(response, "Walk away focused, confident and career-ready")
+        self.assertContains(response, "agency/img/walkaway.jpg")
+        self.assertNotContains(response, 'class="walkaway"')
         self.assertNotContains(response, "SUMMER MODELLING ACADEMY")
         self.assertContains(response, "Get Represented")
         self.assertContains(response, "agency/img/founder.jpeg")
@@ -66,13 +73,13 @@ class HomePageTests(TestCase):
             self.assertContains(portfolio, f"agency/img/{filename}")
         self.assertNotContains(portfolio, "brand3.jpeg")
 
-    def test_entertainer_slideshow_has_requested_images(self):
+    def test_content_creator_slideshow_has_requested_images(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, f'href="{reverse("entertainers_gallery")}" aria-label="View the entertainers gallery" data-entertainer-slideshow')
+        self.assertContains(response, f'href="{reverse("entertainers_gallery")}" aria-label="View the content creators gallery" data-entertainer-slideshow')
         self.assertContains(response, " data-entertainer-slide>", count=1)
         self.assertContains(response, " data-entertainer-slide hidden>", count=2)
         gallery = self.client.get(reverse("entertainers_gallery"))
-        self.assertContains(gallery, "Entertainers.")
+        self.assertContains(gallery, "Content Creators.")
         for filename in ("e.jpeg", "e1.jpeg", "e2.jpeg"):
             self.assertContains(response, f"agency/img/{filename}")
             self.assertContains(gallery, f"agency/img/{filename}", count=1)
@@ -86,12 +93,17 @@ class HomePageTests(TestCase):
         self.assertRedirects(response, reverse("training_application"))
         self.assertContains(self.client.get(reverse("training_application")), "agency/img/self.jpeg")
 
-    def test_logos_use_entertainment_branding(self):
+    def test_logos_use_talent_agency_branding(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, '<span class="brand-tagline">Entertainment</span>', count=3)
-        self.assertContains(response, 'aria-label="Local Faces Entertainment home"', count=2)
-        self.assertContains(response, 'aria-label="Local Faces Entertainment"')
-        self.assertNotContains(response, '<span class="brand-tagline">Talent Agency')
+        self.assertContains(response, '<span class="brand-tagline">Talent Agency</span>', count=3)
+        self.assertContains(response, 'aria-label="Local Faces Talent Agency home"', count=2)
+        self.assertContains(response, 'aria-label="Local Faces Talent Agency"')
+        self.assertNotContains(response, '<span class="brand-tagline">Entertainment')
+        self.assertContains(response, "Models of all ages and sizes &amp; Content Creators")
+        self.assertContains(response, "Training and Packages Available")
+        self.assertContains(response, "Production, Podcast &amp; Content Creation")
+        self.assertNotContains(response, "Actors")
+        self.assertNotContains(response, "MCs")
 
     def test_navigation_has_accessible_mobile_menu(self):
         response = self.client.get(reverse("home"))
@@ -125,13 +137,25 @@ class HomePageTests(TestCase):
         self.assertContains(response, "Talent applications are coming soon.")
 
     def test_training_details_are_visible_on_home_and_application(self):
-        for url in (reverse("home"), reverse("camp:apply"), reverse("camp:apply_form")):
+        for url in (reverse("home"), reverse("camp:apply"), reverse("camp:apply_form"), reverse("training_shop")):
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertContains(response, "2026 training is full.")
+                self.assertContains(response, "December intake fully booked!")
+                self.assertContains(response, "Registrations for 2026 are officially closed.")
+                self.assertContains(response, "December 2026 Academy Fashion Show &amp; Graduation")
+                self.assertContains(response, "R50 per person")
+                self.assertContains(response, "Shared upon enquiry")
+                self.assertContains(response, 'href="mailto:info@localfaces.co.za"')
+                self.assertContains(response, 'href="https://wa.me/27681946795"')
+                self.assertContains(response, "2027 registrations now open!")
+                self.assertContains(response, "Join Local Faces Modelling Academy in Johannesburg, Durban or Cape Town, hosted by Semu.")
+                self.assertContains(response, "Limited spaces! First come, first served. Registration closes once classes are full.")
+                self.assertContains(response, "Secure your spot today!")
                 self.assertContains(response, "Training is available for 2027")
+                self.assertContains(response, "What You’ll Walk Away With", count=1)
+                self.assertContains(response, "Walk away focused, confident and career-ready", count=1)
+                self.assertContains(response, "agency/img/walkaway.jpg", count=1)
                 self.assertContains(response, "6-week intensive")
-                self.assertContains(response, "first-come, first-served")
                 self.assertContains(response, "Durban")
                 self.assertContains(response, "Johannesburg")
                 self.assertContains(response, "Cape Town")
@@ -142,29 +166,39 @@ class HomePageTests(TestCase):
 
     def test_training_links_go_to_details_and_shop(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, '<a class="service" href="#training-information">')
-        self.assertContains(response, '<div class="academy-copy" id="training-information">')
+        self.assertContains(response, '<a class="service" href="#training-fees">')
+        self.assertContains(response, '<p class="training-fees" id="training-fees"><strong>Registration: R500</strong>')
+        self.assertContains(response, '<div class="academy-details" id="training-information">')
         self.assertContains(response, f'href="{reverse("training_shop")}"')
         self.assertContains(
             response,
             f'href="{reverse("camp:apply")}">Explore training</a>',
         )
         self.assertNotContains(response, "Apply for 2027 training")
+        html = response.content.decode()
+        self.assertLess(html.index("Learn. Practise. Grow."), html.index("LOCAL FACES<br>"))
+        self.assertLess(html.index("Turn Your Look Into an Opportunity. Turn Your Name Into a Brand."), html.index("<h3>Training details</h3>"))
+        self.assertLess(html.index("<h3>Training details</h3>"), html.index("December intake fully booked!"))
+        self.assertLess(html.index("December intake fully booked!"), html.index("R1,500 per hour"))
+        self.assertLess(html.index("R1,500 per hour"), html.index("agency/img/walkaway.jpg"))
+        self.assertLess(html.index("agency/img/walkaway.jpg"), html.index("What You’ll Walk Away With"))
 
     def test_course_topics_appear_on_homepage_and_course_details(self):
         topics = (
-            "Modelling &amp; Runway",
-            "On-Camera &amp; Audition Skills",
-            "Confidence &amp; Self-Esteem",
-            "Branding &amp; Social Media",
+            "Runway &amp; Modelling:",
+            "Understanding the Industry:",
+            "Confidence &amp; Career Longevity:",
+            "Personal Branding &amp; Social Media:",
             "Industry Knowledge &amp; Representation",
+            "Monetising Your Talent:",
         )
         home = self.client.get(reverse("home"))
+        self.assertContains(home, "What the training covers")
         for topic in topics:
             self.assertContains(home, topic, count=1)
         for url in (reverse("camp:apply"), reverse("camp:apply_form"), reverse("training_shop")):
             response = self.client.get(url)
-            self.assertContains(response, "What the course covers")
+            self.assertContains(response, "What the training covers")
             for topic in topics:
                 self.assertContains(response, topic)
 
@@ -230,7 +264,7 @@ class TrainingShopTests(TestCase):
 
     def create_order(self):
         self.add_item()
-        self.add_item(training="individual", term="4", city="other", other_city="Pretoria", hours="2")
+        self.add_item(training="individual", term="4", city="Johannesburg", hours="2")
         response = self.client.post(reverse("training_checkout"), {
             "first_name": "Alex", "last_name": "Example", "email": "alex@example.com"
         })
@@ -315,8 +349,7 @@ class TrainingShopTests(TestCase):
 
     def test_one_on_one_requires_talent_style_form_before_checkout(self):
         response = self.client.post(reverse("training_shop"), {
-            "training": "individual", "term": "4", "city": "other",
-            "other_city": "Pretoria", "hours": "2",
+            "training": "individual", "term": "4", "city": "Johannesburg", "hours": "2",
         })
         self.assertRedirects(response, reverse("training_application"))
         self.assertEqual(self.client.get(reverse("training_cart")).context["items"], [])
@@ -328,7 +361,7 @@ class TrainingShopTests(TestCase):
         self.assertNotContains(page, 'name="available_full_five_weeks"')
         self.assertContains(page, 'name="shoe_size"')
         self.assertContains(page, 'name="headshot"')
-        self.assertEqual(page.context["form"]["city"].value(), "Pretoria")
+        self.assertEqual(page.context["form"]["city"].value(), "Johannesburg")
 
         data = self.application_data(dress_size="", skirt_size="")
         data.pop("headshot")
@@ -346,7 +379,7 @@ class TrainingShopTests(TestCase):
         self.assertRedirects(self.client.post(reverse("training_application"), data), reverse("training_cart"))
         application = Application.objects.get()
         self.assertEqual(application.kind, Application.Kind.TRAINING)
-        self.assertEqual((application.city, application.dress_size, application.photos.count()), ("Pretoria", "10", 2))
+        self.assertEqual((application.city, application.dress_size, application.photos.count()), ("Johannesburg", "10", 2))
         cart = self.client.get(reverse("training_cart"))
         self.assertContains(cart, application.application_number)
         self.assertEqual(cart.context["total"], Decimal("3000.00"))
@@ -399,7 +432,7 @@ class TrainingShopTests(TestCase):
 
     def test_cart_totals_and_order_handoff(self):
         self.assertEqual(self.add_item().status_code, 302)
-        self.assertEqual(self.add_item(training="individual", term="4", city="other", other_city="Pretoria", hours="2").status_code, 302)
+        self.assertEqual(self.add_item(training="individual", term="4", city="Johannesburg", hours="2").status_code, 302)
         response = self.client.get(reverse("training_cart"))
         self.assertEqual(response.context["total"], Decimal("3500.00"))
         self.assertContains(response, "Term 4")
@@ -415,7 +448,7 @@ class TrainingShopTests(TestCase):
         self.assertEqual(order.items[0]["subtotal"], "500.00")
         self.assertEqual(order.items[0]["balance_due"], "2500.00")
         self.assertEqual(order.items[0]["city"], "Durban")
-        self.assertEqual(order.items[1]["city"], "Pretoria")
+        self.assertEqual(order.items[1]["city"], "Johannesburg")
         response = self.client.get(response["Location"])
         self.assertContains(response, "sandbox.payfast.co.za/eng/process")
         self.assertContains(response, 'name="amount" value="3500.00"')
@@ -429,10 +462,11 @@ class TrainingShopTests(TestCase):
 
     def test_invalid_selection_and_remove(self):
         self.assertEqual(self.add_item(city="Pretoria").status_code, 200)
-        response = self.add_item(city="other", other_city="Pretoria")
-        self.assertFormError(response.context["form"], "city", "Choose Durban, Johannesburg or Cape Town for the group course.")
-        response = self.add_item(training="individual", city="other")
-        self.assertFormError(response.context["form"], "other_city", "Enter your city for one-on-one training.")
+        for training in ("course", "individual"):
+            for city in ("Pretoria", "other"):
+                with self.subTest(training=training, city=city):
+                    response = self.add_item(training=training, city=city, other_city="Pretoria")
+                    self.assertFormError(response.context["form"], "city", "Select a valid choice. %(value)s is not one of the available choices." % {"value": city})
         self.assertEqual(self.add_item(training="individual", hours="0").status_code, 200)
         self.assertEqual(self.add_item(term="5").status_code, 200)
         self.assertEqual(self.client.get(reverse("training_cart")).context["items"], [])
@@ -452,14 +486,29 @@ class TrainingShopTests(TestCase):
         self.assertContains(response, 'Group course - R500 non-refundable registration')
         self.assertContains(response, 'Group course: R500 non-refundable registration.')
         self.assertContains(response, '<select name="city"')
-        self.assertContains(response, '>Other city</option>')
-        self.assertNotContains(response, "Other city (one-on-one only)")
+        self.assertNotContains(response, '>Other city</option>')
         for city in ("Durban", "Johannesburg", "Cape Town"):
             self.assertContains(response, f'value="{city}"')
             added = self.add_item(city=city, hours="")
             self.assertRedirects(added, reverse("training_cart"))
         cart = self.client.get(reverse("training_cart"))
         self.assertEqual(cart.context["total"], Decimal("1500.00"))
+        self.assertEqual([item["city"] for item in cart.context["items"]], ["Durban", "Johannesburg", "Cape Town"])
+
+    def test_outdated_other_city_selection_requires_reselection(self):
+        session = self.client.session
+        session["pending_training"] = {"training": "individual", "city": "Pretoria", "term": "1", "hours": 1}
+        session.save()
+        response = self.client.get(reverse("training_application"), follow=True)
+        self.assertRedirects(response, reverse("training_shop"))
+        self.assertContains(response, "Training is now available only in Durban, Johannesburg and Cape Town.")
+        self.assertEqual(self.client.session.get("training_cart", []), [])
+
+    def test_one_on_one_allows_three_cities(self):
+        for city in ("Durban", "Johannesburg", "Cape Town"):
+            with self.subTest(city=city):
+                self.assertRedirects(self.add_item(training="individual", city=city, hours="1"), reverse("training_cart"))
+        cart = self.client.get(reverse("training_cart"))
         self.assertEqual([item["city"] for item in cart.context["items"]], ["Durban", "Johannesburg", "Cape Town"])
 
     def test_registration_only_order_is_r500_and_discloses_balance(self):

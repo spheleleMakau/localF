@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from . import payfast
-from .forms import AcademyOpportunityForm, AddTrainingForm
+from .forms import AcademyOpportunityForm, AddTrainingForm, TRAINING_CITIES
 from .models import TrainingOrder
 from camp.forms import IndividualTrainingApplicationForm, TrainingApplicationForm
 from camp.models import Application
@@ -65,6 +65,9 @@ def training_application(request):
     pending = request.session.get("pending_training")
     if not pending or pending.get("training") not in ("course", "individual"):
         messages.error(request, "Choose training before completing the applicant form.")
+        return redirect("training_shop")
+    if pending.get("city") not in TRAINING_CITIES:
+        messages.error(request, "Training is now available only in Durban, Johannesburg and Cape Town. Please choose your training again.")
         return redirect("training_shop")
     form_class = TrainingApplicationForm if pending["training"] == "course" else IndividualTrainingApplicationForm
     form = form_class(

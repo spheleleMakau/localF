@@ -5,20 +5,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#1d1b18">
-    <meta name="description" content="{% block description %}Local Faces Talent Agency & Entertainment — a home for models and talent of all ages, sizes and backgrounds.{% endblock %}">
-    <title>{% block title %}Local Faces — Talent Agency & Entertainment{% endblock %}</title>
+    <meta name="description" content="{% block description %}Local Faces Talent Agency — representing models of all ages and sizes, and content creators.{% endblock %}">
+    <title>{% block title %}Local Faces — Talent Agency{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'agency/css/site.css' %}?v=9">
+    <link rel="stylesheet" href="{% static 'agency/css/site.css' %}?v=15">
     {% block extra_head %}{% endblock %}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header" data-header>
-      <a class="brand" href="{% url 'home' %}" aria-label="Local Faces Entertainment home">
+      <a class="brand" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
         <span class="brand-monogram"><img src="{% static 'agency/img/logo-light.png' %}" alt="" width="605" height="200"></span>
-        <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Entertainment</span></span>
+        <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Talent Agency</span></span>
       </a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-menu-toggle>
         <span>Menu</span><span class="menu-toggle-lines" aria-hidden="true"><i></i><i></i></span>
@@ -39,15 +39,15 @@
     </main>
     <footer class="site-footer" id="contact">
       <div class="footer-main">
-        <a class="brand brand-footer" href="{% url 'home' %}" aria-label="Local Faces Entertainment home">
+        <a class="brand brand-footer" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
           <span class="brand-monogram"><img src="{% static 'agency/img/logo-light.png' %}" alt="" width="605" height="200" loading="lazy"></span>
-          <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Entertainment</span></span>
+          <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Talent Agency</span></span>
         </a>
         <p>Real people. Real talent.<br>Room to become.</p>
         <a class="footer-contact" href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>
       </div>
       <div class="footer-bottom">
-        <span>&copy; {% now "Y" %} Local Faces Talent Agency &amp; Entertainment</span>
+        <span>&copy; {% now "Y" %} Local Faces Talent Agency</span>
         <span>South Africa</span>
       </div>
     </footer>
