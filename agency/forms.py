@@ -8,7 +8,6 @@ class AddTrainingForm(forms.Form):
         ("course", "Group course - R500 non-refundable registration"),
         ("individual", "One-on-one training"),
     ])
-    term = forms.ChoiceField(choices=[(str(n), f"Term {n}") for n in range(1, 5)])
     city = forms.ChoiceField(
         choices=[
             ("", "Select a city"),

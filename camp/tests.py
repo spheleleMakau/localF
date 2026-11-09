@@ -68,7 +68,7 @@ class CampPagesTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, "Training details")
                 self.assertContains(response, reverse("training_shop"))
-                self.assertNotContains(response, "<form")
+                self.assertNotContains(response, "data-application-form")
                 self.assertNotContains(response, 'name="submission_key"')
                 self.assertEqual(self.client.post(url, {}).status_code, 405)
                 self.assertContains(
@@ -165,7 +165,7 @@ class CampPagesTests(TestCase):
         application = Application.objects.create(
             full_name="Jamie Applicant",
             email="jamie@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Pretoria",
             privacy_consent=True,
             photo_consent=True,
@@ -201,8 +201,8 @@ class ApplicationSubmissionTests(TestCase):
             "submission_key": str(uuid4()),
             "full_name": "Jordan Example",
             "email": "jordan@example.com",
-            "phone": "+27123456789",
-            "whatsapp_number": "+27671234567",
+            "phone": "0123456789",
+            "whatsapp_number": "0671234567",
             "age": "20",
             "age_category": "seniors",
             "gender": "female",
@@ -264,7 +264,7 @@ class ApplicationSubmissionTests(TestCase):
         response = self.client.post(reverse("join"), self.submission_data())
         application = Application.objects.get()
         self.assertRedirects(response, reverse("camp:success", args=[application.share_token]), fetch_redirect_response=False)
-        self.assertContains(self.client.get(response["Location"]), "Email delivery is temporarily unavailable")
+        self.assertNotContains(self.client.get(response["Location"]), "Email delivery is temporarily unavailable")
         self.assertEqual(application.photos.count(), 2)
         self.assertEqual(application.notification_email.status, ApplicationEmail.Status.FAILED)
         staff = get_user_model().objects.create_superuser("reviewer", "reviewer@example.com", "password")
@@ -503,7 +503,15 @@ class ApplicationSubmissionTests(TestCase):
         from .forms import TrainingApplicationForm
         form = TrainingApplicationForm(self.submission_data(age_category="kids"))
         self.assertFalse(form.is_valid())
-        self.assertIn("matches your age", form.errors["age_category"][0])
+        self.assertIn("does not match the selected category", form.errors["age_category"][0])
+
+    def test_phone_and_email_formats_are_validated(self):
+        from .forms import TrainingApplicationForm
+        for field, value in (("phone", "12345"), ("whatsapp_number", "06819467a5"), ("phone", "+27681946795"), ("email", "name@domain")):
+            with self.subTest(field=field, value=value):
+                form = TrainingApplicationForm(self.submission_data(**{field: value}))
+                self.assertFalse(form.is_valid())
+                self.assertIn(field, form.errors)
 
     def test_kids_category_accepts_age_12_and_shows_2027_notice(self):
         response = self.client.post(
@@ -513,7 +521,7 @@ class ApplicationSubmissionTests(TestCase):
                 age_category="kids",
                 gender="male",
                 guardian_name="Jordan Guardian",
-                guardian_phone="+27123456789",
+                guardian_phone="0123456789",
                 guardian_consent="on",
             ),
         )
@@ -580,8 +588,8 @@ class WhatsAppHandoffTests(TestCase):
         application = Application.objects.create(
             full_name="Morgan Applicant",
             email="morgan@example.com",
-            phone="+27123456789",
-            whatsapp_number="+27671234567",
+            phone="0123456789",
+            whatsapp_number="0671234567",
             age=21,
             age_category=Application.AgeCategory.SENIORS,
             gender=Application.Gender.FEMALE,
@@ -630,7 +638,7 @@ class WhatsAppHandoffTests(TestCase):
         application = Application.objects.create(
             full_name="Morgan Applicant",
             email="morgan@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Durban",
         )
         request = RequestFactory().get("/", HTTP_HOST="agency.example", secure=True)
@@ -654,7 +662,7 @@ class PrivatePhotoTests(TestCase):
         application = Application.objects.create(
             full_name="Taylor Example",
             email="taylor@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Johannesburg",
             privacy_consent=True,
             photo_consent=True,

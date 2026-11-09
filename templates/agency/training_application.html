@@ -4,10 +4,10 @@
 {% block camp_content %}
 <section class="talent-application" aria-labelledby="training-application-title">
   <div class="talent-application-inner">
-    <p class="eyebrow">{% if selection.training == "course" %}Group training{% else %}One-on-one training{% endif %} · 2027 · Term {{ selection.term }} · {{ selection.city }}</p>
+    <p class="eyebrow">{% if selection.training == "course" %}Group training{% else %}One-on-one training{% endif %} · 2027 · {{ selection.city }}</p>
     <h1 id="training-application-title">Training applicant details</h1>
-    {% if selection.training == "course" %}<p>Complete one form per group-course booking before adding it to your cart. The R500 registration fee is paid by EFT or bank deposit; your selected R2,500 balance payments are arranged separately with Local Faces.</p>
-    {% else %}<p>Complete one form per one-on-one booking before adding it to your cart. Training with Semu costs R1,500 per hour in your selected city.</p>{% endif %}
+    <div class="privacy-note"><strong>Bank:</strong> Nedbank<br><strong>Account name:</strong> localfaces Entertainment<br><strong>Account number:</strong> 1330686349<br><strong>Reference:</strong> Applicant's name<br>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></div>
+    {% if selection.training == "course" %}{% else %}<p>Complete one form per one-on-one booking before adding it to your cart. Training with Semu costs R1,500 per hour in your selected city.</p>{% endif %}
     <form class="application-form" method="post" enctype="multipart/form-data" data-application-form>
       {% csrf_token %}
       {{ form.submission_key }}
@@ -36,13 +36,6 @@
       </div>
       {% include "agency/_photo_uploads.html" %}
       <div class="privacy-note"><strong>Privacy:</strong> Your details are emailed to Local Faces Agency for application review and follow-up. Your photographs are stored for staff review and are not attached to the email or published by submitting this form.</div>
-      <div class="consent-fields">
-        {% for field in form %}
-          {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
-            <div id="error-{{ field.name }}" class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
-          {% endif %}
-        {% endfor %}
-      </div>
       <div class="form-controls form-controls-submit"><span class="required-hint"><span class="required-mark">*</span> Required fields</span><button class="button button-champagne submit-application" type="submit">Add training to cart <span aria-hidden="true">→</span></button></div>
     </form>
     <a class="text-back" href="{% url 'training_shop' %}">← Change training selection</a>

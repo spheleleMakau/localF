@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 def model_application_redirect(request, application):
     notification = ApplicationEmail.objects.filter(application=application).first()
     if notification and notification.status != ApplicationEmail.Status.SENT:
-        messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
         return redirect("camp:success", token=application.share_token)
     return redirect(build_application_whatsapp_url(application, request))
 
@@ -76,7 +75,6 @@ def apply(request):
                 )
             else:
                 if not send_application_email(notification, request):
-                    messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
                     return redirect("camp:success", token=application.share_token)
                 return redirect(
                     build_application_whatsapp_url(application, request)

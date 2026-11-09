@@ -193,6 +193,11 @@ h1, h2, p { margin-top: 0; }
 .footer-main { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 30px; }
 .footer-main > p { margin: 0; color: #c0b8ad; font: 400 17px/1.4 var(--serif); }
 .footer-contact { color: var(--champagne); font-size: 12px; }
+.enquiry-form { display: grid; gap: 8px; max-width: 520px; margin-bottom: 30px; }
+.enquiry-form h2 { margin: 0 0 6px; font: 400 22px/1.2 var(--serif); }
+.enquiry-form label { color: #c0b8ad; font-size: 12px; }
+.enquiry-form input, .enquiry-form textarea { width: 100%; padding: 10px 12px; border: 1px solid #403c36; background: #1d1b18; color: var(--paper); font: inherit; }
+.enquiry-form button { justify-self: start; margin-top: 6px; cursor: pointer; }
 .footer-bottom { display: flex; justify-content: space-between; gap: 20px; padding-top: 16px; border-top: 1px solid #403c36; color: #a59d93; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 
 @media (min-width: 901px) {

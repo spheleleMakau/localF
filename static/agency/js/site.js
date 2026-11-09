@@ -40,3 +40,22 @@ for (const [containerSelector, slideSelector] of [
     }, 3000);
   }
 }
+
+const enquiryForm = document.querySelector("[data-enquiry-form]");
+if (enquiryForm) {
+  enquiryForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = enquiryForm.elements.name.value.trim();
+    const message = enquiryForm.elements.message.value.trim();
+    if (!name || !message) return;
+    const text = `Name: ${name}\nEnquiry: ${message}`;
+    window.open(`https://wa.me/27681946795?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  });
+}
+
+document.addEventListener('input', function (event) {
+  var input = event.target;
+  if (input && input.hasAttribute && input.hasAttribute('data-digits-only')) {
+    input.value = input.value.replace(/\D/g, '').slice(0, 10);
+  }
+});

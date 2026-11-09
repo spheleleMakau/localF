@@ -55,13 +55,9 @@ def send_application_email(notification, request):
         lines.extend([
             f"Training: {'Group course' if selection['training'] == 'course' else 'One-on-one'}",
             f"Training city: {selection['city']}",
-            f"Term: {selection['term']}",
         ])
         if selection["training"] == "individual":
             lines.append(f"Hours: {selection['hours']}")
-        elif selection.get("balance_payment_plan"):
-            choices = dict(TrainingApplicationForm.base_fields["balance_payment_plan"].choices)
-            lines.append(f"Course balance payment plan: {choices[selection['balance_payment_plan']]}")
     for label, value in fields:
         if value is True:
             value = "Yes"

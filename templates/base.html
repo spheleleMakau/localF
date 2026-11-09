@@ -46,12 +46,20 @@
         <p>Real people. Real talent.<br>Room to become.</p>
         <a class="footer-contact" href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>
       </div>
+      <form class="enquiry-form" data-enquiry-form>
+        <h2>Send us an enquiry</h2>
+        <label for="enquiry-name">Your name</label>
+        <input id="enquiry-name" name="name" type="text" maxlength="100" autocomplete="name" required>
+        <label for="enquiry-message">Your enquiry</label>
+        <textarea id="enquiry-message" name="message" rows="4" maxlength="1000" required></textarea>
+        <button class="button button-champagne" type="submit">Send via WhatsApp <span aria-hidden="true">→</span></button>
+      </form>
       <div class="footer-bottom">
         <span>&copy; {% now "Y" %} Local Faces Talent Agency</span>
         <span>South Africa</span>
       </div>
     </footer>
-    <script src="{% static 'agency/js/site.js' %}?v=7" defer></script>
+    <script src="{% static 'agency/js/site.js' %}?v=9" defer></script>
     {% block extra_scripts %}{% endblock %}
   </body>
 </html>

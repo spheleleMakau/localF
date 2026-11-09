@@ -55,7 +55,7 @@
       <h3>Training details</h3>
       {% include "agency/_training_details.html" with show_course_topics=False show_training_outcome=False %}
     </div>
-    <img class="academy-photo" src="{% static 'agency/img/walkaway.jpg' %}" alt="Professional model digitals showing a model's poses and looks" width="956" height="1600" loading="lazy">
+    <img class="academy-photo" src="{% static 'agency/img/walkaway1.jpg' %}" alt="Professional model digitals showing a model's poses and looks" width="956" height="1600" loading="lazy">
     <div class="academy-copy">
       {% include "agency/_training_outcome.html" %}
       <h3>What the training covers</h3>
@@ -72,26 +72,17 @@
 
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
-    <div class="model-slideshow" data-model-slideshow>
-      <a class="tile" href="{% url 'models_gallery' %}" aria-label="View the models gallery">
-        <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy" data-model-slide>
-        <img src="{% static 'agency/img/model1.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <img src="{% static 'agency/img/model2.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <img src="{% static 'agency/img/model3.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <img src="{% static 'agency/img/model4.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <img src="{% static 'agency/img/model5.jpeg' %}" alt="" loading="lazy" data-model-slide hidden>
-        <span class="tile-text"><strong>Models</strong><small>Explore our gallery.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
-      </a>
-    </div>
-    <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="View the content creators gallery" data-entertainer-slideshow>
-      <img src="{% static 'agency/img/e.jpeg' %}" alt="" loading="lazy" data-entertainer-slide>
-      <img src="{% static 'agency/img/e1.jpeg' %}" alt="" loading="lazy" data-entertainer-slide hidden>
-      <img src="{% static 'agency/img/e2.jpeg' %}" alt="" loading="lazy" data-entertainer-slide hidden>
-      <span class="tile-text"><strong>Content Creators</strong><small>Explore our creator gallery.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    <a class="tile" href="{% url 'models_gallery' %}" aria-label="Models">
+      <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy">
+      <span class="tile-text"><strong>Models</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
-    <a class="tile" id="photography" href="#join">
-      <img src="{% static 'agency/img/talent-photography.jpg' %}" alt="Behind the scenes on a photo shoot" width="226" height="183" loading="lazy">
-      <span class="tile-text"><strong>Photography</strong><small>Portfolios, Digitals &amp; Campaign Shoots.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
+      <img src="{% static 'agency/img/1000834848.jpg' %}" alt="" loading="lazy">
+      <span class="tile-text"><strong>Content Creators</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tile" id="photography" href="{% url 'production_gallery' %}">
+      <img src="{% static 'agency/img/photography.jpg' %}" alt="Behind the scenes on a photo shoot" width="226" height="183" loading="lazy">
+      <span class="tile-text"><strong>Production</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <div class="merch" id="merchandise">
       <div class="merch-copy">
@@ -115,9 +106,15 @@
     </div>
     <div class="founder-copy">
       <p class="eyebrow">Meet the founder</p>
-      <h2 id="founder-title">The journey is <em>personal.</em></h2>
-      <p>With over 15 years of experience in the modelling and entertainment industry, Semu brings firsthand experience, international exposure and a passion for developing talent.</p>
-      <p>Through Local Faces Talent Agency, her mission is to discover, groom and represent the next generation of talent, creating opportunities for people of all ages, shapes, sizes and backgrounds.</p>
+      <h2 id="founder-title">SEMU SHANGASE</h2>
+      <p><strong>Model, Actress &amp; Founder of Local Faces Talent Agency</strong></p>
+      <p>Semu Shangase is an accomplished South African model, actress and entrepreneur with an impressive career spanning over 15 years in the modelling and entertainment industry.</p>
+      <p>Throughout her career, she has worked with leading household brands such as Avon, NIVEA and Dark &amp; Lovely Au Naturale, featuring in major advertising campaigns, television commercials and billboards across Africa.</p>
+      <p>Her modelling portfolio also includes four cover features for Nubian Magazine, alongside appearances in various other magazines across South Africa.</p>
+      <p>Her acting credits include Netflix productions Smart Casual and The Executive, as well as Mzansi Magic’s Isikweletu, further showcasing her versatility in the entertainment industry.</p>
+      <p>After more than 15 years of building a successful career, Semu has finally realised her long-standing dream of establishing her own agency, Local Faces Talent Agency.</p>
+      <p>With a wealth of industry experience and a passion for developing new talent, she is now dedicated to discovering, grooming and empowering the next generation of models, actors and entertainers.</p>
+      <p>Through Local Faces, Semu hopes to bridge the gap between aspiring talent and real industry opportunities, creating a platform where everyday people of all backgrounds, ages and body types have the opportunity to be seen, developed and represented.</p>
       <a class="founder-portfolio-link" href="{% url 'founder_portfolio' %}">Explore Semu's portfolio <span aria-hidden="true">→</span></a>
     </div>
   </section>

@@ -1,11 +1,11 @@
-{% extends "camp/base.html" %}
+﻿{% extends "camp/base.html" %}
 {% load static %}
 {% block title %}Book training — Local Faces{% endblock %}
 {% block camp_content %}
 <section class="shop-page training-shop-page" data-training-shop-page>
   <p class="eyebrow">Learn with Local Faces</p>
   <h1>Choose your training</h1>
-  <p>Choose your training, 2027 term and city. Dates and arrangements will be confirmed with you.</p>
+  <p>Choose your training and city. Dates and arrangements will be confirmed with you.</p>
   <div class="training-shop-layout">
     <div class="training-shop-details" id="training-information">
       <h2>Training details</h2>
@@ -28,7 +28,7 @@
           </div>
         {% endfor %}
         <p>Complete an applicant form with two photographs before adding training to your cart.</p>
-        <button class="button button-champagne" type="submit">Continue to applicant form</button>
+        <button class="button button-champagne" type="submit">Add training to cart</button>
         <a class="shop-link" href="{% url 'training_cart' %}">View cart</a>
       </form>
     </div>

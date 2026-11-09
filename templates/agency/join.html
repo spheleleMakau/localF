@@ -33,13 +33,6 @@
         </div>
         {% include "agency/_photo_uploads.html" %}
         <div class="privacy-note"><strong>Privacy:</strong> Your details are emailed to Local Faces Agency for application review and follow-up. Your photographs are stored for staff review and are not attached to the email or published by submitting this form. Please do not include sensitive information that is not relevant to your application.</div>
-        <div class="consent-fields">
-          {% for field in form %}
-            {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
-              <div id="error-{{ field.name }}" class="checkbox-field {% if field.errors %}has-error{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
-            {% endif %}
-          {% endfor %}
-        </div>
         <div class="form-controls form-controls-submit"><span class="required-hint"><span class="required-mark">*</span> Required fields</span><button class="button button-champagne submit-application" type="submit">Submit application <span aria-hidden="true">↗</span></button></div>
       </form>
     </div>

@@ -8,13 +8,12 @@
   {% if needs_application %}
     <p role="alert">A training item in your cart needs an application. Remove it and add it again to complete the form before paying.</p>
   {% elif items %}
-    <h2>Pay by EFT or bank deposit</h2>
+    <h2>Pay by EFT</h2>
     <p><strong>Bank:</strong> Nedbank<br>
       <strong>Account name:</strong> localfaces Entertainment<br>
-      <strong>Account number:</strong> 1330686349</p>
-    <p><strong>Use the applicant's name as the payment reference.</strong></p>
-    <p><strong>After payment, email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>. Include the applicant's name.</strong></p>
-    <p>Local Faces will verify your deposit before confirming payment. No order is created from this cart, and the cart will not clear automatically after payment. If you have already paid, do not pay again; contact us if confirmation is delayed.</p>
+      <strong>Account number:</strong> 1330686349<br>
+      <strong>Reference:</strong> Applicant's name</p>
+    <p>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>.</p>
   {% endif %}
 </section>
 {% endblock %}

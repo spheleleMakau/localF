@@ -19,6 +19,7 @@ from .models import TrainingOrder
 from camp.forms import IndividualTrainingApplicationForm, TrainingApplicationForm
 from camp.models import Application, ApplicationEmail
 from camp.notifications import send_application_email
+from camp.whatsapp import build_application_whatsapp_url
 
 logger = logging.getLogger(__name__)
 PRICES = {"course": Decimal("500.00"), "individual": Decimal("1500.00"), "academy": Decimal("1666.67")}
@@ -37,8 +38,14 @@ def cart_items(request):
             balance_due = sum(map(Decimal, ACADEMY_INSTALLMENTS))
         else:
             balance_due = Decimal("0.00")
+        whatsapp_url = ""
+        if item.get("application_number"):
+            application = Application.objects.filter(application_number=item["application_number"]).first()
+            if application:
+                whatsapp_url = build_application_whatsapp_url(application, request)
         items.append({
             **item,
+            "whatsapp_url": whatsapp_url,
             "price": price,
             "subtotal": price * quantity,
             "balance_due": str(balance_due),
@@ -90,9 +97,7 @@ def training_application(request):
                     application = Application.objects.filter(submission_key=pending["submission_key"]).first()
                     if application is None:
                         application = form.save()
-                        training_selection = {key: pending[key] for key in ("training", "term", "city", "hours")}
-                        if pending["training"] == "course":
-                            training_selection["balance_payment_plan"] = form.cleaned_data["balance_payment_plan"]
+                        training_selection = {key: pending[key] for key in ("training", "city", "hours")}
                         notification = ApplicationEmail.objects.create(
                             application=application,
                             training_selection=training_selection,
@@ -113,15 +118,12 @@ def training_application(request):
                 cart = request.session.get("training_cart", [])
                 item = {key: value for key, value in pending.items() if key != "submission_key"}
                 item["application_number"] = application.application_number
-                if pending["training"] == "course" and notification:
-                    item["balance_payment_plan"] = notification.training_selection.get("balance_payment_plan", "")
                 cart.append(item)
                 request.session["training_cart"] = cart
                 del request.session["pending_training"]
                 messages.success(request, "Training and applicant details added to your cart.")
                 if notification and notification.status != ApplicationEmail.Status.SENT:
-                    if not send_application_email(notification, request):
-                        messages.warning(request, "Your application is saved. Email delivery is temporarily unavailable; the team can review your application in the staff dashboard.")
+                    send_application_email(notification, request)
                 return redirect("training_cart")
     return render(request, "agency/training_application.html", {"form": form, "selection": pending})
 

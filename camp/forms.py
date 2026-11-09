@@ -42,7 +42,7 @@ class ApplicationForm(forms.ModelForm):
         label="WhatsApp number",
         max_length=32,
         required=True,
-        widget=forms.TextInput(attrs={"autocomplete": "tel"}),
+        widget=forms.TextInput(attrs={"autocomplete": "tel", "inputmode": "numeric", "maxlength": 10, "minlength": 10, "pattern": "[0-9]{10}", "data-digits-only": "", "placeholder": "0681946795"}),
     )
     current_occupation = forms.CharField(
         label="What do you currently do?",
@@ -128,36 +128,38 @@ class ApplicationForm(forms.ModelForm):
         }
         widgets = {
             "about": forms.Textarea(attrs={"rows": 4}),
-            "phone": forms.TextInput(attrs={"autocomplete": "tel"}),
+            "phone": forms.TextInput(attrs={"autocomplete": "tel", "inputmode": "numeric", "maxlength": 10, "minlength": 10, "pattern": "[0-9]{10}", "data-digits-only": "", "placeholder": "0681946795"}),
             "preferred_days": forms.CheckboxSelectMultiple,
             "guardian_phone": forms.TextInput(
-                attrs={"autocomplete": "tel"}
+                attrs={"autocomplete": "tel", "inputmode": "numeric", "maxlength": 10, "minlength": 10, "pattern": "[0-9]{10}", "data-digits-only": "", "placeholder": "0681946795"}
             ),
         }
-
-    privacy_consent = forms.BooleanField(
-        label=(
-            "I agree that Local Faces Agency may use these details to review "
-            "and respond to my application."
-        )
-    )
-    photo_consent = forms.BooleanField(
-        label=(
-            "I confirm these photographs are of me and may be viewed by "
-            "Local Faces Agency for this application."
-        )
-    )
-    guardian_consent = forms.BooleanField(
-        required=False,
-        label=(
-            "A parent or guardian has reviewed this application and agrees "
-            "to the submission of these details and photographs."
-        )
-    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.saved_photo_paths = []
+
+    def _clean_ten_digits(self, name, label):
+        value = (self.cleaned_data.get(name) or "").strip()
+        if value and not (value.isascii() and value.isdigit() and len(value) == 10):
+            raise forms.ValidationError(f"{label} must be exactly 10 digits (numbers only), e.g. 0681946795.")
+        return value
+
+    def clean_phone(self):
+        return self._clean_ten_digits("phone", "Phone number")
+
+    def clean_whatsapp_number(self):
+        return self._clean_ten_digits("whatsapp_number", "WhatsApp number")
+
+    def clean_guardian_phone(self):
+        return self._clean_ten_digits("guardian_phone", "Guardian phone number")
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        domain = email.rsplit("@", 1)[-1]
+        if "." not in domain or domain.startswith(".") or domain.endswith("."):
+            raise forms.ValidationError("Enter a valid email address, e.g. name@example.com.")
+        return email
 
     def clean(self):
         cleaned_data = super().clean()
@@ -172,7 +174,7 @@ class ApplicationForm(forms.ModelForm):
         elif age_category and expected_category != age_category:
             self.add_error(
                 "age_category",
-                "Please select the category that matches your age.",
+                f"Your age ({age}) does not match the selected category. Please choose {Application.AgeCategory(expected_category).label}.",
             )
         if age is not None and age < 18:
             if not cleaned_data.get("guardian_name"):
@@ -184,11 +186,6 @@ class ApplicationForm(forms.ModelForm):
                 self.add_error(
                     "guardian_phone",
                     "A parent or guardian phone number is required for applicants under 18.",
-                )
-            if not cleaned_data.get("guardian_consent"):
-                self.add_error(
-                    "guardian_consent",
-                    "Parent or guardian agreement is required for applicants under 18.",
                 )
         if cleaned_data.get("has_modelling_experience") is False:
             cleaned_data["previous_experience"] = ""
@@ -220,9 +217,6 @@ class ApplicationForm(forms.ModelForm):
         application.submission_key = self.cleaned_data["submission_key"]
         application.age = self.cleaned_data["age"]
         application.available_full_five_weeks = self.cleaned_data.get("available_full_five_weeks")
-        application.privacy_consent = self.cleaned_data["privacy_consent"]
-        application.photo_consent = self.cleaned_data["photo_consent"]
-        application.guardian_consent = self.cleaned_data["guardian_consent"]
         if commit:
             application.save()
             self.save_photos(application)
@@ -292,15 +286,7 @@ class ModelApplicationForm(TalentStyleApplicationForm):
 
 
 class TrainingApplicationForm(SizedApplicationForm):
-    balance_payment_plan = forms.ChoiceField(
-        label="How would you like to pay the remaining R2,500?",
-        choices=(
-            ("", "Please select"),
-            ("once", "One payment of R2,500"),
-            ("two_months", "Two monthly payments of R1,250"),
-        ),
-        help_text="The R500 registration fee is paid first. Arrange the remaining payments with Local Faces.",
-    )
+    pass
 
 
 class IndividualTrainingApplicationForm(TalentStyleApplicationForm):

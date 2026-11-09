@@ -10,12 +10,20 @@ def join(request):
     return apply(request)
 
 
+def _coming_soon(request, title):
+    return render(request, "agency/coming_soon.html", {"title": title})
+
+
 def models_gallery(request):
-    return render(request, "agency/models_gallery.html")
+    return _coming_soon(request, "Models")
 
 
 def entertainers_gallery(request):
-    return render(request, "agency/entertainers_gallery.html")
+    return _coming_soon(request, "Content Creators")
+
+
+def production_gallery(request):
+    return _coming_soon(request, "Production")
 
 
 def founder_portfolio(request):

@@ -9,8 +9,12 @@
   {% if order.status == "paid" %}
     <p>Your payment has been confirmed.</p>
   {% else %}
-    <p>Your order is awaiting payment confirmation. If you have already paid, do not pay again; contact us if confirmation is delayed.</p>
-    <p>This order was created before the switch to EFT. Please contact <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a> with your order reference before making another payment.</p>
+    <h2>Pay by EFT</h2>
+    <p><strong>Bank:</strong> Nedbank<br>
+      <strong>Account name:</strong> localfaces Entertainment<br>
+      <strong>Account number:</strong> 1330686349<br>
+      <strong>Reference:</strong> {{ order.token }}</p>
+    <p>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>.</p>
   {% endif %}
   <a class="shop-link" href="{% url 'training_shop' %}">Training options</a>
 </section>
