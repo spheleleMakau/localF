@@ -177,7 +177,7 @@ class HomePageTests(TestCase):
                     self.assertIn("(non-refundable)", panel)
                     self.assertIn("Course: R2,500", panel)
                     self.assertIn("Total: R3,000", panel)
-                    self.assertIn("remaining R2,500 in one payment or in two monthly payments of R1,250", panel)
+                    self.assertIn("remaining R2,500 is arranged separately", panel)
                     self.assertIn("R1,500 per hour", panel)
                     self.assertIn('href="mailto:info@localfaces.co.za"', panel)
                     self.assertIn(
