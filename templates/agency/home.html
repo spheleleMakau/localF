@@ -75,7 +75,7 @@
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
     <a class="tile" href="{% url 'models_gallery' %}" aria-label="Models">
-      <img src="{% static 'agency/img/sphe2.jpeg' %}" alt="" loading="lazy">
+      <img class="face-top" src="{% static 'agency/img/sphe2.jpeg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Models</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
@@ -102,7 +102,7 @@
   </section>
 
   <section class="testimonial" aria-labelledby="testimonial-title">
-    <img src="{% static 'agency/img/ss.jpg' %}" alt="Sphelele Makau" loading="lazy">
+    <span class="testimonial-photo"><img src="{% static 'agency/img/ss.jpg' %}" alt="Sphelele Makau" width="1254" height="1920" loading="lazy"></span>
     <figure>
       <p class="eyebrow" id="testimonial-title">Testimonial</p>
       <blockquote>

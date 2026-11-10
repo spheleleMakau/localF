@@ -67,7 +67,8 @@ h1, h2, p { margin-top: 0; }
 .hero-collage .hero-panel-shoot { aspect-ratio: .74; object-position: 20% bottom; }
 .hero-collage .hero-panel-portrait { aspect-ratio: 1092 / 1600; object-position: center top; }
 .testimonial { display: flex; align-items: center; gap: 22px; max-width: 760px; margin: 0 auto; padding: 36px 6%; color: var(--ink); }
-.testimonial img { flex: 0 0 auto; width: 84px; height: 84px; border-radius: 50%; object-fit: cover; object-position: 80% center; }
+.testimonial-photo { position: relative; flex: 0 0 auto; width: 84px; height: 84px; overflow: hidden; border-radius: 50%; }
+.testimonial-photo img { position: absolute; top: 2px; left: -58px; width: 185px; height: auto; max-width: none; }
 .testimonial figure { margin: 0; }
 .testimonial .eyebrow { margin-bottom: 8px; }
 .testimonial blockquote { margin: 0 0 8px; font: italic 400 15px/1.55 var(--serif); }
@@ -142,6 +143,7 @@ h1, h2, p { margin-top: 0; }
 .model-slideshow { position: relative; min-width: 0; }
 .model-slideshow .tile { height: 100%; }
 .tile img[hidden] { display: none; }
+.tile img.face-top { object-position: center top; }
 .merch { display: grid; grid-column: 1 / -1; grid-template-columns: 1fr 1.4fr; min-height: 380px; background: #ebdfd0; overflow: hidden; }
 .merch-copy { align-self: center; padding: 32px clamp(24px, 4vw, 64px); }
 .merch-logo { color: var(--ink); margin-bottom: 14px; }
