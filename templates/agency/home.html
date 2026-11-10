@@ -15,7 +15,9 @@
       </div>
     </div>
     <div class="hero-collage">
-      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces collage featuring models and a photographer" width="757" height="388" fetchpriority="high">
+      <img class="hero-image hero-panel-collage" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces models" width="757" height="388" fetchpriority="high">
+      <img class="hero-panel-shoot" src="{% static 'agency/img/photography.jpg' %}" alt="A photographer shooting a model in a white studio" width="1589" height="1990" fetchpriority="high">
+      <img class="hero-panel-portrait" src="{% static 'agency/img/sphe.jpg' %}" alt="Smiling Local Faces model in a black top and jeans" width="1092" height="1600" fetchpriority="high">
     </div>
   </section>
 
@@ -73,11 +75,11 @@
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
     <a class="tile" href="{% url 'models_gallery' %}" aria-label="Models">
-      <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy">
+      <img src="{% static 'agency/img/sphe2.jpeg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Models</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
-      <img src="{% static 'agency/img/1000834848.jpg' %}" alt="" loading="lazy">
+      <img src="{% static 'agency/img/sphe1.jpg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Content Creators</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tile" id="photography" href="{% url 'production_gallery' %}">
@@ -97,6 +99,18 @@
       </div>
       <img class="merch-tote" src="{% static 'agency/img/mach.jpg' %}" alt="Local Faces canvas tote bag" width="1254" height="1254" loading="lazy">
     </div>
+  </section>
+
+  <section class="testimonial" aria-labelledby="testimonial-title">
+    <img src="{% static 'agency/img/ss.jpg' %}" alt="Sphelele Makau" loading="lazy">
+    <figure>
+      <p class="eyebrow" id="testimonial-title">Testimonial</p>
+      <blockquote>
+        <p>Working with Semuhle has been such a beautiful journey. She saw potential in me, helped me embrace my natural look and guided me towards becoming a more confident version of myself.</p>
+        <p>I’m truly grateful for her encouragement, support and for opening doors to new opportunities in modelling.</p>
+      </blockquote>
+      <figcaption>— Sphelele Makau</figcaption>
+    </figure>
   </section>
 
   <section class="founder" id="about" aria-labelledby="founder-title">

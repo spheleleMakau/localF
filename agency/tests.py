@@ -56,7 +56,7 @@ class HomePageTests(TestCase):
 
     def test_model_slideshow_has_requested_images(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "agency/img/model.jpeg", count=1)
+        self.assertContains(response, "agency/img/sphe2.jpeg", count=1)
         self.assertNotContains(response, "agency/img/model1.jpeg")
         self.assertContains(response, f'href="{reverse("models_gallery")}"')
         gallery = self.client.get(reverse("models_gallery"))
@@ -74,7 +74,7 @@ class HomePageTests(TestCase):
     def test_content_creator_slideshow_has_requested_images(self):
         response = self.client.get(reverse("home"))
         self.assertContains(response, f'href="{reverse("entertainers_gallery")}"')
-        self.assertContains(response, "agency/img/1000834848.jpg", count=1)
+        self.assertContains(response, "agency/img/sphe1.jpg", count=1)
         self.assertNotContains(response, "agency/img/e1.jpeg")
         gallery = self.client.get(reverse("entertainers_gallery"))
         self.assertContains(gallery, "soon to be uploaded")
